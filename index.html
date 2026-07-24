@@ -842,7 +842,7 @@ let _avFabUnsub=null, _avMyData=null;
 function setupAvatarFab(){
   avatarStyleOnce();
   if(document.getElementById('av-fab')) return;
-  const fab=document.createElement('button'); fab.id='av-fab'; fab.setAttribute('aria-label','Chibi sahnesi');
+   const fab=document.createElement('button'); fab.id='av-fab'; fab.setAttribute('aria-label','Chibi sahnesi');
   fab.innerHTML=`<span class="av-inner">${AV_HEART_LINE}</span><span class="av-tag">Chibi</span>`;
   fab.addEventListener('click', openScene);
   document.body.appendChild(fab);
