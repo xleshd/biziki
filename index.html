@@ -843,7 +843,7 @@ function setupAvatarFab(){
   avatarStyleOnce();
   if(document.getElementById('av-fab')) return;
 
-  /* === CHIBI MENÜ ENJEKSIYONU v3 (genislik/scroll filtresi YOK) === */
+    /* === CHIBI MENÜ ENJEKSIYONU v3 (genislik/scroll filtresi YOK) === */
   if(!document.getElementById('av-chibi-css')){ const st=document.createElement('style'); st.id='av-chibi-css';
     st.textContent='.av-chibi-tab{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;background:transparent;border:none;-webkit-tap-highlight-color:transparent;height:100%;min-height:46px;transition:transform .14s ease;} .av-chibi-tab:active{transform:scale(.82);} .av-chibi-ico{display:flex;align-items:center;justify-content:center;line-height:0;} .av-chibi-ico svg{width:27px;height:27px;display:block;}';
     document.head.appendChild(st); }
