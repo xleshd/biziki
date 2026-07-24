@@ -934,7 +934,7 @@ function setupAvatarFab(){
   sc.querySelector('#av-remove').addEventListener('click', removeAvatar);
   sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act)));
   sc.querySelectorAll('.av-actor').forEach(a=> a.addEventListener('click', ()=> doMood('happy', a.dataset.who)));
-  if(!_avFabUnsub){
+    if(!_avFabUnsub){
     try{ _avFabUnsub=onSnapshot(userDoc(UID), snap=>{ const d=snap.exists()?snap.data():{}; _avMyData=d.avatar||null; paintFab(); if(sc.classList.contains('open')) paintMe(d); }); }catch(e){}
   }
 let _selWho='me';
