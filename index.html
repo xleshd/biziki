@@ -937,7 +937,6 @@ function setupAvatarFab(){
   if(!_avFabUnsub){
     try{ _avFabUnsub=onSnapshot(userDoc(UID), snap=>{ const d=snap.exists()?snap.data():{}; _avMyData=d.avatar||null; paintFab(); if(sc.classList.contains('open')) paintMe(d); }); }catch(e){}
   }
-}
 let _selWho='me';
 function doMood(act, who){
   const sc=document.getElementById('av-scene'); if(!sc) return;
