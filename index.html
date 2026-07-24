@@ -687,6 +687,15 @@ function petNotify(c){
   check('clean',  c.clean<25,  name+' kirlendi', 'Banyo zamanı geldi');
   check('happy',  c.happy<25,  name+' mutsuz', 'Biraz ilgi ister misin');
 }
+function notifyOthers(title, body){
+  try{
+    fetch('/.netlify/functions/sendpush', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ title, body, excludeUid: UID })
+    }).catch(()=>{});
+  }catch(e){}
+}
 async function registerPush(){
   if(!UID) return;
   if(!('Notification' in window)) return;
@@ -1097,7 +1106,9 @@ function renderChat(){
   w.scrollTop=w.scrollHeight;
 }
 window.addChat = async ()=>{ const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
-  await addDoc(col('chat'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() }); };
+  await addDoc(col('chat'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() });
+  notifyOthers(myName(), t);
+};
 
 function compress(file, maxW, targetBytes){
   return new Promise((resolve,reject)=>{
