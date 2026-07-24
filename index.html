@@ -874,7 +874,7 @@ function setupAvatarFab(){
     bar.style.display='flex'; bar.style.alignItems='stretch';
     [...bar.children].forEach(k=>{ k.style.flex='1 1 0'; k.style.minWidth='0'; k.style.width='auto'; });
   }
-    const btn=document.createElement('button');
+       const btn=document.createElement('button');
     btn.setAttribute('data-av-chibi','1'); btn.setAttribute('aria-label','Chibi sahnesi'); btn.className='av-chibi-tab';
     if(cs.display==='flex') btn.style.flex='1 1 0';
     btn.innerHTML='<span class="av-chibi-ico">'+CHIBI_FACE+'</span>';
@@ -937,7 +937,12 @@ function setupAvatarFab(){
     if(!_avFabUnsub){
     try{ _avFabUnsub=onSnapshot(userDoc(UID), snap=>{ const d=snap.exists()?snap.data():{}; _avMyData=d.avatar||null; paintFab(); if(sc.classList.contains('open')) paintMe(d); }); }catch(e){}
   }
+  if(!_avFabUnsub){
+    try{ _avFabUnsub=onSnapshot(userDoc(UID), snap=>{ ... }); }catch(e){}
+  }
+}
 let _selWho='me';
+  let _selWho='me';
 function doMood(act, who){
   const sc=document.getElementById('av-scene'); if(!sc) return;
   const targets = who ? [who] : ['me','you'];
