@@ -842,30 +842,30 @@ let _avFabUnsub=null, _avMyData=null;
 function setupAvatarFab(){
   avatarStyleOnce();
   if(document.getElementById('av-fab')) return;
-    /* === CHIBI MENÜ ENJEKSIYONU (köşe butonu YOK) === */
+
+  /* === CHIBI MENÜ ENJEKSIYONU v3 (genislik/scroll filtresi YOK) === */
   if(!document.getElementById('av-chibi-css')){ const st=document.createElement('style'); st.id='av-chibi-css';
     st.textContent='.av-chibi-tab{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;background:transparent;border:none;-webkit-tap-highlight-color:transparent;height:100%;min-height:46px;transition:transform .14s ease;} .av-chibi-tab:active{transform:scale(.82);} .av-chibi-ico{display:flex;align-items:center;justify-content:center;line-height:0;} .av-chibi-ico svg{width:27px;height:27px;display:block;}';
     document.head.appendChild(st); }
   const CHIBI_FACE='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f6a8b8" stroke-width="1.7"/><circle cx="9" cy="11" r="1.15" fill="#f6a8b8"/><circle cx="15" cy="11" r="1.15" fill="#f6a8b8"/><path d="M9 14.4c1 1.3 5 1.3 6 0" stroke="#f6a8b8" stroke-width="1.5" stroke-linecap="round"/></svg>';
   function findBottomBar(){
-    const W=window.innerWidth, H=window.innerHeight; let best=null, bestScore=-1e9;
+    const H=window.innerHeight; let best=null, bestScore=-1e9;
     document.querySelectorAll('body *').forEach(el=>{
-      if(el.id==='av-scene'||el.id==='av-fab') return;
+      if(el.id==='av-scene'||el.id==='av-fab'||el.hasAttribute&&el.hasAttribute('data-av-chibi')) return;
       const cs=getComputedStyle(el); if(cs.display==='none'||cs.visibility==='hidden') return;
-      const r=el.getBoundingClientRect();
-      if(r.width < W*0.72 || r.height<36 || r.height>170) return;
-      const distBottom=H-r.bottom; if(distBottom>90 || distBottom<-20) return;
-      const kids=[...el.children].filter(k=>{ const kr=k.getClientRects(); return kr.length && kr[0].width>10; });
+      const r=el.getBoundingClientRect(); if(r.height<36||r.height>200) return;
+      const kids=[...el.children].filter(k=>{ const kr=k.getClientRects(); return kr.length&&kr[0].width>10; });
       if(kids.length<3||kids.length>6) return;
       const ws=kids.map(k=>k.getBoundingClientRect().width); const mx=Math.max(...ws), mn=Math.min(...ws);
-      if(mn<=0 || mx/mn>1.7) return;
-      const score=r.bottom*10 + kids.length - distBottom;
+      if(mn<=0||mx/mn>1.6) return;
+      const fixed=(cs.position==='fixed'||cs.position==='sticky')?100000:0;
+      const score=fixed + r.bottom*10 + kids.length;
       if(score>bestScore){ bestScore=score; best=el; }
     });
     return best;
   }
   function injectChibi(bar){
-    if(!bar || bar.querySelector('[data-av-chibi]')) return;
+    if(!bar||bar.querySelector('[data-av-chibi]')) return;
     const cs=getComputedStyle(bar);
     if(cs.display==='grid'){
       const gtc=cs.gridTemplateColumns||''; const rep=gtc.match(/repeat\(\s*(\d+)/i);
@@ -881,12 +881,12 @@ function setupAvatarFab(){
   }
   function tryInject(){ const bar=findBottomBar(); if(bar){ injectChibi(bar); return true; } return false; }
   if(!tryInject()){
-    let tries=0; const t=setInterval(()=>{ tries++; if(tryInject()||tries>20) clearInterval(t); },400);
+    let tries=0; const t=setInterval(()=>{ tries++; if(tryInject()||tries>25) clearInterval(t); },400);
     try{ const mo=new MutationObserver(()=>{ if(tryInject()) mo.disconnect(); });
-      mo.observe(document.body,{childList:true,subtree:true}); setTimeout(()=>mo.disconnect(),12000); }catch(e){}
+      mo.observe(document.body,{childList:true,subtree:true}); setTimeout(()=>mo.disconnect(),15000); }catch(e){}
+    window.addEventListener('scroll',()=>tryInject(),{passive:true});
   }
-  /* === /CHIBI MENÜ ENJEKSIYONU === */
-
+  /* === /CHIBI MENÜ ENJEKSIYONU v3 === */
   const sc=document.createElement('div'); sc.id='av-scene';
   sc.innerHTML=`
     <div class="av-sky"></div><div class="av-ground"></div>
