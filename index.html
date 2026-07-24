@@ -924,6 +924,9 @@ function setupAvatarFab(){
     </div>
     <input type="file" id="av-file" accept="image/*" style="display:none">`;
   document.body.appendChild(sc);
+    if(!document.getElementById('av-tabbar-fix')){ const fx=document.createElement('style'); fx.id='av-tabbar-fix';
+    fx.textContent='#tabbar>*{flex:1 1 0 !important;min-width:0 !important;width:auto !important;} #tabbar [data-av-chibi]{display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;} #tabbar [data-av-chibi] .av-chibi-ico svg{width:22px !important;height:22px !important;}';
+    document.head.appendChild(fx); }
 
   sc.querySelector('.av-x').addEventListener('click', closeScene);
   sc.querySelector('#av-upload').addEventListener('click', ()=> sc.querySelector('#av-file').click());
