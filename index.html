@@ -925,8 +925,8 @@ function setupAvatarFab(){
     try{ _avFabUnsub=onSnapshot(userDoc(UID), snap=>{ const d=snap.exists()?snap.data():{}; _avMyData=d.avatar||null; paintFab(); if(sc.classList.contains('open')) paintMe(d); }); }catch(e){}
   }
 }
-let _selWho='me';
-  let _selWho='me';
+//_selWho='me';
+  //_selWho='me';
 function doMood(act, who){
   const sc=document.getElementById('av-scene'); if(!sc) return;
   const targets = who ? [who] : ['me','you'];
