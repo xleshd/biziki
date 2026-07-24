@@ -1,0 +1,15 @@
+{
+  "name": "Bizİki",
+  "short_name": "Bizİki",
+  "description": "Çiftlere özel romantik uygulama",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6cdd2",
+  "theme_color": "#e87461",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

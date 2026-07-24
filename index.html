@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Bizİki</title>
+
+<script>
+  try{ if(localStorage.getItem('biziki_theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
+</script>
+
+<meta name="theme-color" content="#e87461" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Bizİki" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icon.png" />
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  *{ scrollbar-width:none; -ms-overflow-style:none; }
+  *::-webkit-scrollbar{ width:0; height:0; display:none; }
+  html,body{ overflow-x:hidden; }
+
+  :root{
+    --krem:#fdf6ec; --krem2:#fffaf2; --metin:#2c2630; --soluk:#8a7d86;
+    --mercan:#e87461; --pembe:#f3a6b8; --lavanta:#b9a7e0;
+    --golge:0 10px 25px rgba(120,80,90,.18);
+    --body-grad:linear-gradient(135deg,#c9b8e8 0%,#f3c6d0 45%,#f0a07e 100%);
+    --phone-grad:linear-gradient(160deg,#d8c8ec 0%,#f6cdd2 50%,#f3a988 100%);
+    --border-soft:rgba(255,255,255,.5);
+  }
+  :root[data-theme="dark"]{
+    --krem:#2b2533; --krem2:#352d40; --metin:#f3eaf0; --soluk:#b3a6b8;
+    --mercan:#ff8a78; --pembe:#ff9fb6; --lavanta:#c9b6f0;
+    --golge:0 10px 25px rgba(0,0,0,.5);
+    --body-grad:linear-gradient(135deg,#15101f 0%,#241427 50%,#2e1622 100%);
+    --phone-grad:linear-gradient(160deg,#221830 0%,#311f38 50%,#3a2230 100%);
+    --border-soft:rgba(255,255,255,.08);
+  }
+  body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--body-grad); color:var(--metin); padding:20px; transition:background .4s ease; }
+  .phone{ width:380px; height:780px; max-height:95vh; background:var(--phone-grad); border-radius:44px; box-shadow:0 30px 70px rgba(80,40,60,.35); overflow:hidden; display:flex; flex-direction:column; position:relative; border:1px solid var(--border-soft); transition:background .4s ease; }
+  .screen{ flex:1; overflow-y:auto; padding:26px 22px 16px; display:none; }
+  .screen.active{ display:block; animation:fade .35s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  .overlay{ position:absolute; inset:0; padding:30px 26px; display:flex; flex-direction:column; justify-content:center; background:var(--phone-grad); overflow-y:auto; }
+  #authScreen{ z-index:60; }
+  #matchScreen{ z-index:50; }
+  .hide{ display:none !important; }
+  .match-logo{ text-align:center; margin-bottom:6px; animation:beat 1.4s infinite; line-height:0; }
+  .match-logo svg{ display:inline-block; }
+  @keyframes beat{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.12);} }
+  .match-title{ text-align:center; font-size:30px; font-weight:800; margin-bottom:6px; }
+  .match-sub{ text-align:center; font-size:13px; color:var(--soluk); margin-bottom:22px; }
+  .match-card{ background:var(--krem); border-radius:24px; padding:22px; box-shadow:var(--golge); }
+  .match-card h3{ font-size:16px; margin-bottom:14px; text-align:center; }
+  .code-box{ text-align:center; font-size:34px; font-weight:900; letter-spacing:5px; color:var(--mercan); background:var(--krem2); border-radius:16px; padding:14px; margin:10px 0; user-select:all; }
+  .sync-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#bbb; margin-left:6px; vertical-align:middle; }
+  .sync-dot.on{ background:#4caf50; box-shadow:0 0 8px #4caf50; }
+
+  .auth-tabs{ display:flex; background:var(--krem2); border-radius:14px; padding:4px; margin-bottom:16px; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); }
+  .auth-tabs button{ flex:1; border:none; background:none; padding:9px; border-radius:11px; font-weight:800; font-size:13px; cursor:pointer; color:var(--soluk); }
+  .auth-tabs button.on{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); color:#fff; }
+  .auth-err{ color:var(--mercan); font-size:12px; text-align:center; margin-top:8px; min-height:16px; font-weight:700; }
+  .auth-hint{ font-size:11px; color:var(--soluk); text-align:center; margin-top:12px; line-height:1.5; }
+
+  .app-title{ text-align:center; font-size:26px; font-weight:800; letter-spacing:.5px; margin-bottom:18px; }
+  .couple{ display:flex; align-items:center; justify-content:center; gap:14px; }
+  .person{ text-align:center; }
+  .avatar{ width:74px; height:74px; border-radius:50%; border:3px solid var(--krem2); background:linear-gradient(135deg,var(--mercan),var(--pembe)); display:flex; align-items:center; justify-content:center; font-size:30px; color:#fff; font-weight:700; box-shadow:var(--golge); overflow:hidden; }
+  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .person .nm{ margin-top:7px; font-weight:700; font-size:15px; }
+  .person .nm.wait{ color:var(--soluk); font-weight:600; font-size:13px; }
+  .heart-mid{ line-height:0; animation:beat 1.4s infinite; }
+  .heart-mid svg{ display:block; }
+  .counter{ text-align:center; font-size:20px; font-weight:800; margin:18px 0 4px; line-height:1.3; }
+  .counter-sub{ text-align:center; font-size:12px; color:var(--soluk); font-weight:700; margin-bottom:12px; }
+  .special-days{ display:flex; flex-direction:column; gap:7px; margin:0 auto; max-width:300px; }
+  .sd{ display:flex; align-items:center; gap:9px; background:var(--krem2); border-radius:13px; padding:8px 13px; box-shadow:var(--golge); }
+  .sd-dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+  .sd-lbl{ flex:1; font-size:12.5px; font-weight:700; }
+  .sd-d{ font-size:12px; font-weight:800; color:var(--mercan); }
+  .sd.today .sd-d{ color:#4caf50; }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px; }
+  .card{ background:var(--krem); border-radius:22px; padding:22px 12px; text-align:center; box-shadow:var(--golge); cursor:pointer; transition:transform .15s; border:1px solid var(--border-soft); }
+  .card:active{ transform:scale(.96); }
+  .card .ico{ margin-bottom:10px; line-height:0; }
+  .card .ico svg{ display:inline-block; }
+  .card .lbl{ font-weight:700; font-size:14px; line-height:1.3; }
+  .head{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .back{ width:38px; height:38px; border-radius:50%; background:var(--krem2); border:none; cursor:pointer; box-shadow:var(--golge); display:flex; align-items:center; justify-content:center; color:var(--metin); flex:none; }
+  .head h2{ font-size:20px; font-weight:800; }
+  .btn{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); color:#fff; border:none; padding:12px 18px; border-radius:16px; font-weight:700; font-size:14px; cursor:pointer; box-shadow:var(--golge); width:100%; }
+  .btn:active{ transform:scale(.98); }
+  .btn:disabled{ opacity:.5; }
+  .btn.ghost{ background:var(--krem2); color:var(--metin); }
+  .btn.danger{ background:var(--krem2); color:var(--mercan); border:1px solid rgba(232,116,97,.35); }
+  textarea, input, select{ width:100%; border:none; border-radius:14px; padding:12px 14px; font-size:14px; background:var(--krem2); color:var(--metin); font-family:inherit; margin-bottom:10px; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); }
+  textarea::placeholder, input::placeholder{ color:var(--soluk); }
+  textarea{ resize:none; min-height:80px; }
+  label{ font-size:12px; font-weight:700; color:var(--soluk); display:block; margin:8px 0 4px; }
+  .row{ display:flex; gap:8px; }
+  .item{ background:var(--krem); border-radius:18px; padding:14px 16px; margin-bottom:12px; box-shadow:var(--golge); position:relative; }
+  .item .meta{ font-size:11px; color:var(--soluk); font-weight:700; margin-bottom:5px; }
+  .item .txt{ font-size:14px; line-height:1.45; white-space:pre-wrap; }
+  .del{ position:absolute; top:10px; right:12px; border:none; background:none; color:var(--mercan); cursor:pointer; opacity:.75; display:flex; align-items:center; justify-content:center; padding:2px; }
+  .empty{ text-align:center; color:var(--soluk); font-size:13px; padding:30px 10px; }
+  .chat-wrap{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; min-height:60px; }
+  .bubble{ max-width:88%; min-width:34%; padding:11px 16px; border-radius:18px; font-size:14.5px; line-height:1.45; box-shadow:var(--golge); overflow-wrap:anywhere; }
+  .bubble .who{ font-size:11px; font-weight:800; opacity:.65; margin-bottom:3px; }
+  .bubble.left{ background:var(--krem); align-self:flex-start; border-bottom-left-radius:5px; }
+  .bubble.right{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); color:#fff; align-self:flex-end; border-bottom-right-radius:5px; }
+  .bubble.right .who{ color:#fff; }
+  .photos{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .photos .ph{ position:relative; aspect-ratio:1; border-radius:16px; overflow:hidden; box-shadow:var(--golge); cursor:pointer; }
+  .photos .ph img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .photos .ph .del{ top:6px; right:6px; background:rgba(255,255,255,.85); width:26px; height:26px; border-radius:50%; color:var(--mercan); }
+  .qa-q{ font-weight:800; font-size:15px; margin:14px 0 8px; }
+  .qa-pair{ display:flex; gap:8px; }
+  .qa-pair .item{ flex:1; margin-bottom:0; }
+  .qa-pair .item .txt{ font-size:13px; min-height:18px; }
+  .tabbar{ display:flex; justify-content:space-around; align-items:center; background:var(--krem); padding:12px 0 16px; border-top:1px solid var(--border-soft); }
+  .tabbar.hide{ display:none; }
+  .tab{ background:none; border:none; cursor:pointer; opacity:.4; transition:.2s; padding:4px 10px; }
+  .tab.on{ opacity:1; transform:translateY(-2px); }
+  .tab svg{ width:26px; height:26px; }
+  .tab.on svg{ stroke:var(--mercan); fill:var(--mercan); }
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#2c2630; color:#fff; padding:10px 18px; border-radius:14px; font-size:13px; font-weight:700; z-index:400; opacity:0; transition:.3s; pointer-events:none; max-width:88%; text-align:center; }
+  :root[data-theme="dark"] .toast{ background:#f3eaf0; color:#2c2630; }
+  .toast.show{ opacity:1; }
+
+  .theme-row{ display:flex; align-items:center; justify-content:space-between; background:var(--krem); border-radius:18px; padding:14px 16px; box-shadow:var(--golge); margin:6px 0 16px; }
+  .theme-row .tl{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:14px; }
+  .theme-row .tl .ic{ line-height:0; display:flex; }
+  .switch{ position:relative; width:52px; height:30px; flex:none; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; inset:0; cursor:pointer; background:var(--krem2); border-radius:30px; transition:.3s; box-shadow:inset 0 0 0 1px rgba(128,128,128,.2); }
+  .slider:before{ position:absolute; content:""; height:22px; width:22px; left:4px; top:4px; background:#fff; border-radius:50%; transition:.3s; box-shadow:0 2px 5px rgba(0,0,0,.25); }
+  .switch input:checked + .slider{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); }
+  .switch input:checked + .slider:before{ transform:translateX(22px); }
+  .readonly-name{ background:var(--krem2); color:var(--soluk); border-radius:14px; padding:12px 14px; font-size:14px; font-weight:700; margin-bottom:10px; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); display:flex; align-items:center; gap:8px; }
+
+  .prof-photo{ display:flex; gap:14px; align-items:center; margin-bottom:6px; }
+  .pp-prev{ width:66px; height:66px; border-radius:50%; overflow:hidden; background:var(--krem2); display:flex; align-items:center; justify-content:center; box-shadow:var(--golge); flex:none; border:2px solid var(--border-soft); }
+  .pp-prev img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .pp-prev svg{ width:34px; height:34px; stroke:var(--soluk); }
+
+  /* PET */
+  .pet-mini{ background:var(--krem); border-radius:22px; padding:14px 16px; margin:18px 0 4px; box-shadow:var(--golge); cursor:pointer; border:1px solid var(--border-soft); display:flex; align-items:center; gap:14px; transition:transform .15s; }
+  .pet-mini:active{ transform:scale(.98); }
+  .pet-mini .pm-art{ width:58px; height:58px; flex:none; }
+  .pet-mini .pm-art svg{ width:100%; height:100%; display:block; }
+  .pet-mini .pm-body{ flex:1; min-width:0; }
+  .pet-mini .pm-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:7px; }
+  .pet-mini .pm-name{ font-weight:800; font-size:15px; }
+  .pet-mini .pm-lv{ font-size:11px; font-weight:800; color:var(--mercan); background:var(--krem2); padding:3px 9px; border-radius:10px; }
+  .pet-mini .pm-mood{ font-size:11px; color:var(--soluk); font-weight:700; margin-top:7px; }
+  .bars{ display:flex; flex-direction:column; gap:5px; }
+  .bar{ display:flex; align-items:center; gap:6px; }
+  .bar .bi{ width:16px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .bar .bi svg{ display:block; }
+  .bar .track{ flex:1; height:8px; border-radius:6px; background:var(--krem2); overflow:hidden; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); }
+  .bar .fill{ height:100%; border-radius:6px; transition:width .5s ease; }
+  .fill.h{ background:linear-gradient(90deg,#ff9a6b,#ff6b6b); }
+  .fill.p{ background:linear-gradient(90deg,#ffd36b,#ff9fb6); }
+  .fill.e{ background:linear-gradient(90deg,#7bd3ff,#b9a7e0); }
+  .fill.c{ background:linear-gradient(90deg,#9be8c4,#7bd3ff); }
+  .bar .pct{ font-size:11px; font-weight:700; width:34px; text-align:right; color:var(--soluk); }
+
+  .pet-bubble{ background:var(--krem2); color:var(--metin); border-radius:16px; padding:9px 16px; font-size:13px; font-weight:700; display:inline-block; margin:0 auto; box-shadow:var(--golge); position:relative; max-width:80%; }
+  .pet-bubble:after{ content:""; position:absolute; bottom:-7px; left:50%; transform:translateX(-50%); border:7px solid transparent; border-top-color:var(--krem2); border-bottom:0; }
+  .pet-stage{ text-align:center; padding:2px 0 2px; }
+  .pet-stage .pname{ font-size:21px; font-weight:800; margin-top:8px; }
+  .pet-stage .pmood{ font-size:13px; color:var(--soluk); font-weight:700; margin-top:2px; }
+  .xp-wrap{ margin:12px 0 2px; }
+  .xp-top{ display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:var(--soluk); margin-bottom:4px; }
+  .xp-track{ height:10px; border-radius:6px; background:var(--krem2); overflow:hidden; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); }
+  .xp-fill{ height:100%; background:linear-gradient(90deg,var(--lavanta),var(--mercan)); transition:width .5s; }
+  .pet-bars{ margin:12px 0; }
+  .pet-act-log{ text-align:center; font-size:12px; color:var(--mercan); margin-top:10px; font-weight:800; min-height:16px; }
+  .egg-art{ text-align:center; cursor:pointer; animation:eggwob 1.1s ease-in-out infinite; display:inline-block; line-height:0; }
+  @keyframes eggwob{ 0%,100%{transform:rotate(-6deg);} 50%{transform:rotate(6deg);} }
+
+  /* ODA SAHNESİ */
+  .pet-scene{ position:relative; height:236px; border-radius:24px; overflow:hidden; box-shadow:var(--golge); border:1px solid var(--border-soft); }
+  .scene-bg{ position:absolute; inset:0; }
+  .scene-home{ background:linear-gradient(180deg,#ffe9d6 0%,#ffd0bb 100%); }
+  .scene-food{ background:linear-gradient(180deg,#fff1d6 0%,#ffd9a0 100%); }
+  .scene-bath{ background:linear-gradient(180deg,#dcf1ff 0%,#bfe3ff 100%); }
+  .scene-play{ background:linear-gradient(180deg,#ecdcff 0%,#ffd0e6 100%); }
+  .scene-sleep{ background:linear-gradient(180deg,#3a2f5c 0%,#241a3d 100%); }
+  :root[data-theme="dark"] .scene-bg:not(.scene-sleep){ filter:brightness(.66) saturate(.85); }
+  .scene-deco{ position:absolute; inset:0; pointer-events:none; }
+  .pet-mover{ position:absolute; transform:translate(-50%,-50%); line-height:0; z-index:3; }
+  .pet-mover .big{ line-height:0; display:inline-block; cursor:pointer; animation:petbob 2.6s ease-in-out infinite; touch-action:none; }
+  .pet-mover .big svg{ display:block; }
+  .pet-mover .big .boopwrap{ display:inline-block; transition:filter .15s; }
+  .pet-mover .big.boop .boopwrap{ animation:boop .45s ease; }
+  .pet-mover .big.drop-hover .boopwrap{ filter:drop-shadow(0 0 12px rgba(255,255,255,.95)); }
+  @keyframes petbob{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+  @keyframes boop{ 0%{transform:scale(1);} 30%{transform:scale(1.13) rotate(-3deg);} 60%{transform:scale(.95) rotate(2deg);} 100%{transform:scale(1);} }
+  .pet-hint{ position:absolute; left:50%; transform:translateX(-50%); bottom:6px; font-size:10px; color:var(--metin); background:var(--krem2); padding:2px 9px; border-radius:9px; font-weight:800; opacity:.9; box-shadow:var(--golge); z-index:4; white-space:nowrap; }
+  .pet-scene.sleep .pet-hint{ color:#fff; background:rgba(0,0,0,.35); }
+  .hotspot{ position:absolute; background:none; border:none; cursor:pointer; padding:4px; z-index:2; line-height:0; }
+  .hotspot svg{ display:block; filter:drop-shadow(0 4px 6px rgba(80,40,60,.2)); transition:filter .15s; }
+  .hotspot.drop-hover svg{ filter:drop-shadow(0 0 12px rgba(255,255,255,.95)); }
+  /* SÜRÜKLE-BIRAK OBJELERİ */
+  .drag-obj{ cursor:grab; touch-action:none; }
+  .drag-obj.dragging{ cursor:grabbing; z-index:30; }
+  .drag-obj.obj-hint svg{ animation:objwiggle 2.2s ease-in-out infinite; }
+  @keyframes objwiggle{0%,100%{transform:rotate(0) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
+
+  /* ODA MENÜSÜ */
+  .room-tabs{ display:flex; gap:7px; margin-top:14px; }
+  .room-tab{ flex:1; background:var(--krem); border:1px solid var(--border-soft); border-radius:15px; padding:9px 2px 7px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; box-shadow:var(--golge); opacity:.55; transition:.15s; }
+  .room-tab.on{ opacity:1; background:linear-gradient(135deg,var(--mercan),var(--pembe)); border-color:transparent; }
+  .room-tab svg{ width:23px; height:23px; stroke:var(--mercan); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .room-tab.on svg{ stroke:#fff; }
+  .rt-lbl{ font-size:9.5px; font-weight:800; color:var(--metin); }
+  .room-tab.on .rt-lbl{ color:#fff; }
+
+  /* PET CANLI ANİMASYONLAR */
+  .pet-breathe{ transform-box:view-box; transform-origin:100px 172px; animation:breathe 2.6s ease-in-out infinite; }
+  .pet-head{ transform-box:view-box; transform-origin:100px 112px; animation:headtilt 3.6s ease-in-out infinite; }
+  .pet-blink{ transform-box:fill-box; transform-origin:center; animation:blink 4.4s infinite; }
+  .pet-tail{ animation:wag 1s ease-in-out infinite; }
+  @keyframes breathe{ 0%,100%{transform:scaleY(1) scaleX(1);} 50%{transform:scaleY(1.06) scaleX(0.97);} }
+  @keyframes headtilt{ 0%,100%{transform:rotate(0deg);} 30%{transform:rotate(-3.5deg);} 70%{transform:rotate(3.5deg);} }
+  @keyframes blink{ 0%,90%,100%{transform:scaleY(1);} 95%{transform:scaleY(0.1);} }
+  @keyframes wag{ 0%,100%{transform:rotate(-9deg);} 50%{transform:rotate(15deg);} }
+
+  .lightbox{ position:fixed; inset:0; background:rgba(20,10,20,.92); display:flex; align-items:center; justify-content:center; z-index:300; padding:20px; }
+  .lightbox img{ max-width:94vw; max-height:90vh; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .lb-close{ position:absolute; top:18px; right:18px; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+  @media (max-width:480px){
+    body{ padding:0; background:var(--phone-grad); }
+    .phone{ width:100%; height:100vh; max-height:100vh; border-radius:0; border:none; box-shadow:none; }
+  }
+</style>
+
+<script type="importmap">
+{ "imports": {
+  "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+  "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+  "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+}}
+</script>
+</head>
+<body>
+<div class="phone">
+
+  <div id="authScreen" class="overlay">
+    <div class="match-logo"><svg width="56" height="56" viewBox="0 0 48 48"><path d="M20 40 C20 40 6 30 6 19 C6 13 10.5 9.5 15 9.5 C18 9.5 20 11.5 20 11.5 C20 11.5 22 9.5 25 9.5 C29.5 9.5 34 13 34 19 C34 30 20 40 20 40 Z" fill="var(--mercan)"/><path d="M37 22 C37 22 30 17 30 12 C30 9 32 7.5 34 7.5 C35.3 7.5 36.2 8.3 37 9 C37.8 8.3 38.7 7.5 40 7.5 C42 7.5 44 9 44 12 C44 17 37 22 37 22 Z" fill="var(--pembe)"/></svg></div>
+    <div class="match-title">Bizİki</div>
+    <div class="match-sub">Hesabınla gir, her şey hatırlansın</div>
+    <div class="match-card">
+      <div class="auth-tabs">
+        <button id="tabLogin" class="on" onclick="setAuthMode('login')">Giriş Yap</button>
+        <button id="tabSignup" onclick="setAuthMode('signup')">Kayıt Ol</button>
+      </div>
+      <label>E-posta</label>
+      <input id="authEmail" type="email" placeholder="sen@ornek.com" autocomplete="email" />
+      <label>Şifre (en az 6 karakter)</label>
+      <input id="authPass" type="password" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()" />
+      <button class="btn" id="authBtn" onclick="doAuth()">Giriş Yap</button>
+      <div class="auth-err" id="authErr"></div>
+      <div class="auth-hint">İlk kez mi? "Kayıt Ol"dan hesap aç.<br>Hesabın bulutta saklanır, kapatıp açsan da durur.</div>
+    </div>
+  </div>
+
+  <div id="matchScreen" class="overlay hide">
+    <div class="match-logo"><svg width="56" height="56" viewBox="0 0 48 48"><path d="M20 40 C20 40 6 30 6 19 C6 13 10.5 9.5 15 9.5 C18 9.5 20 11.5 20 11.5 C20 11.5 22 9.5 25 9.5 C29.5 9.5 34 13 34 19 C34 30 20 40 20 40 Z" fill="var(--mercan)"/><path d="M37 22 C37 22 30 17 30 12 C30 9 32 7.5 34 7.5 C35.3 7.5 36.2 8.3 37 9 C37.8 8.3 38.7 7.5 40 7.5 C42 7.5 44 9 44 12 C44 17 37 22 37 22 Z" fill="var(--pembe)"/></svg></div>
+    <div class="match-title">Bizİki</div>
+    <div class="match-sub">Şimdi çiftinizi bağlayalım</div>
+    <div class="match-card" id="matchStep1">
+      <h3>Hoş geldin</h3>
+      <button class="btn" onclick="startCreate()">Yeni çift oluştur</button>
+      <button class="btn ghost" onclick="showJoin()" style="margin-top:10px;">Kodum var, katıl</button>
+    </div>
+    <div class="match-card" id="matchCreate" style="display:none;">
+      <h3>Seni tanıyalım</h3>
+      <label>Görünecek adın</label><input id="cName1" placeholder="örn. Sıla veya Mehmet" />
+      <label>İlişkinizin başlangıç tarihi</label><input type="date" id="cStart" />
+      <p style="font-size:11px;color:var(--soluk);text-align:center;margin-top:4px;">Sevgilin kendi hesabıyla katılıp adını kendisi yazacak</p>
+      <button class="btn" onclick="createCouple()" style="margin-top:10px;">Çifti Oluştur</button>
+      <button class="btn ghost" onclick="back1()" style="margin-top:8px;">Geri</button>
+    </div>
+    <div class="match-card" id="matchCreated" style="display:none;">
+      <h3>Çiftiniz hazır!</h3>
+      <p style="font-size:12px;color:var(--soluk);text-align:center;">Bu kodu sevgiline gönder; o da kendi hesabıyla girip "Kodum var, katıl" desin:</p>
+      <div class="code-box" id="newCode">------</div>
+      <button class="btn" onclick="copyCode()">Kodu Kopyala</button>
+      <button class="btn ghost" onclick="enterApp()" style="margin-top:8px;">Uygulamaya Gir</button>
+    </div>
+    <div class="match-card" id="matchJoin" style="display:none;">
+      <h3>Çift kodunu gir</h3>
+      <label>Sevgilinden aldığın kod</label><input id="joinCode" placeholder="örn. ABC123" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-weight:800;" />
+      <label>Görünecek adın</label><input id="joinName" placeholder="adın" />
+      <button class="btn" onclick="joinCouple()" style="margin-top:8px;">Katıl</button>
+      <button class="btn ghost" onclick="back1()" style="margin-top:8px;">Geri</button>
+      <p id="joinErr" style="color:var(--mercan);font-size:12px;text-align:center;margin-top:8px;"></p>
+    </div>
+  </div>
+
+  <section class="screen active" data-screen="home">
+    <div class="app-title">Bizİki <span class="sync-dot" id="syncDot" title="senkron"></span></div>
+    <div class="couple">
+      <div class="person"><div class="avatar" id="av1">?</div><div class="nm" id="nm1">—</div></div>
+      <div class="heart-mid"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 21 C12 21 3.5 14.5 3.5 8.8 C3.5 5.8 5.8 4 8.2 4 C9.9 4 11.2 5 12 6.3 C12.8 5 14.1 4 15.8 4 C18.2 4 20.5 5.8 20.5 8.8 C20.5 14.5 12 21 12 21 Z" fill="var(--pembe)"/></svg></div>
+      <div class="person"><div class="avatar" id="av2">?</div><div class="nm" id="nm2">—</div></div>
+    </div>
+    <div class="counter" id="dayCount">Birlikte 0 gün</div>
+    <div class="counter-sub" id="dayTotal"></div>
+    <div class="special-days" id="specialDays"></div>
+    <div id="petMini"></div>
+    <div class="grid">
+      <div class="card" onclick="go('notes')"><div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--mercan)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3.5 7.5 L12 13 L20.5 7.5"/><path d="M12 17.4 c-1.7-1.3-3.1-2.3-3.1-3.6 0-.9.7-1.5 1.5-1.5.6 0 1.1.3 1.6.9.5-.6 1-.9 1.6-.9.8 0 1.5.6 1.5 1.5 0 1.3-1.4 2.3-3.1 3.6z" fill="var(--pembe)" stroke="none"/></svg></div><div class="lbl">Aşk Notları</div></div>
+      <div class="card" onclick="go('album')"><div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--mercan)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8 7 l1.5-2.5 h5 L16 7"/><circle cx="12" cy="13.5" r="3.3"/></svg></div><div class="lbl">Fotoğraf Albümü</div></div>
+      <div class="card" onclick="go('calendar')"><div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--mercan)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5 h17"/><path d="M8 3 v4 M16 3 v4"/><circle cx="8" cy="13" r="1.1" fill="var(--pembe)" stroke="none"/><circle cx="12" cy="13" r="1.1" fill="var(--pembe)" stroke="none"/><circle cx="16" cy="13" r="1.1" fill="var(--pembe)" stroke="none"/><circle cx="8" cy="16.5" r="1.1" fill="var(--pembe)" stroke="none"/><circle cx="12" cy="16.5" r="1.1" fill="var(--pembe)" stroke="none"/></svg></div><div class="lbl">Ortak Takvim</div></div>
+      <div class="card" onclick="go('qa')"><div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--mercan)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 h11 a2 2 0 0 1 2 2 v5 a2 2 0 0 1 -2 2 h-6 l-3.5 2.6 v-2.6 h-1.5 a2 2 0 0 1 -2 -2 v-5 a2 2 0 0 1 2 -2z"/><circle cx="8" cy="9.5" r="1" fill="var(--pembe)" stroke="none"/><circle cx="11" cy="9.5" r="1" fill="var(--pembe)" stroke="none"/><circle cx="14" cy="9.5" r="1" fill="var(--pembe)" stroke="none"/></svg></div><div class="lbl">Soru &amp; Cevap</div></div>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="notes">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Aşk Notları</h2></div>
+    <p style="font-size:11px;color:var(--soluk);margin-bottom:10px;">Notlar kendi adınla gönderilir</p>
+    <textarea id="noteText" placeholder="Sevgiline tatlı bir not bırak..."></textarea>
+    <button class="btn" onclick="addNote()">Notu Gönder</button>
+    <div id="noteList" style="margin-top:16px;"></div>
+  </section>
+
+  <section class="screen" data-screen="chat">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Sohbet</h2></div>
+    <div class="chat-wrap" id="chatWrap"></div>
+    <div class="row">
+      <input id="chatText" placeholder="Mesaj yaz..." style="margin:0;flex:1;" onkeydown="if(event.key==='Enter')addChat()" />
+      <button class="btn" style="width:auto;margin:0;" onclick="addChat()">Gönder</button>
+    </div>
+  </section>
+
+  <section class="screen" data-screen="album">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Fotoğraf Albümü</h2></div>
+    <button class="btn" id="photoBtn" onclick="document.getElementById('fileInput').click()">Fotoğraf Ekle</button>
+    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="addPhoto(event)" />
+    <p style="font-size:11px;color:var(--soluk);text-align:center;margin:8px 0 14px;">Bir fotoğrafa basarak büyütebilirsin</p>
+    <div class="photos" id="photoGrid"></div>
+  </section>
+
+  <section class="screen" data-screen="calendar">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Ortak Takvim</h2></div>
+    <input type="text" id="evTitle" placeholder="Etkinlik (örn. Akşam yemeği)" />
+    <input type="datetime-local" id="evDate" />
+    <button class="btn" onclick="addEvent()">Etkinlik Ekle</button>
+    <div id="evList" style="margin-top:16px;"></div>
+  </section>
+
+  <section class="screen" data-screen="qa">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Soru &amp; Cevap</h2></div>
+    <p style="font-size:12px;color:var(--soluk);margin-bottom:6px;">İkiniz de cevaplayın, sonra karşılaştırın</p>
+    <div id="qaWrap"></div>
+  </section>
+
+  <section class="screen" data-screen="pet">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Bizim Pet</h2></div>
+    <div id="petBody"></div>
+  </section>
+
+  <section class="screen" data-screen="profile">
+    <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Profil</h2></div>
+    <div class="theme-row">
+      <div class="tl"><span class="ic" id="themeIcon"></span><span>Karanlık Mod</span></div>
+      <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme(this.checked)" /><span class="slider"></span></label>
+    </div>
+    <div class="theme-row">
+      <div class="tl"><span>Bildirimler</span></div>
+      <button class="cp-use" id="notifBtn" onclick="askNotif()">Aç</button>
+    </div>
+
+    <label>Profil fotoğrafın</label>
+    <div class="prof-photo">
+      <div class="pp-prev" id="ppPrev"></div>
+      <div style="flex:1">
+        <button class="btn" onclick="document.getElementById('avatarInput').click()">Fotoğraf Ekle / Değiştir</button>
+        <button class="btn ghost" onclick="removeAvatar()" style="margin-top:8px;">Fotoğrafı Kaldır</button>
+      </div>
+    </div>
+    <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(event)" />
+
+    <label>Hesabın (e-posta)</label>
+    <div class="readonly-name" id="profEmail">—</div>
+    <label>Çift kodunuz (sevgiline vermek için)</label>
+    <div class="code-box" id="profCode" style="font-size:24px;">—</div>
+    <button class="btn ghost" onclick="copyCode2()">Kodu Kopyala</button>
+    <label>Senin adın</label><input id="setMyName" />
+    <label>Sevgilinin adı (değiştirilemez)</label>
+    <div class="readonly-name"><span id="partnerName">—</span></div>
+    <label>Senin doğum günün</label><input type="date" id="setMyBday" />
+    <label>Sevgilinin doğum günü (değiştirilemez)</label>
+    <div class="readonly-name"><span id="partnerBday">—</span></div>
+    <label>İlişkinin Başlangıç Tarihi</label><input type="date" id="setStart" />
+    <button class="btn" onclick="saveSettings()" style="margin-top:14px;">Kaydet</button>
+    <button class="btn ghost" onclick="logout()" style="margin-top:10px;">Çıkış Yap</button>
+        <button class="btn danger" onclick="deleteAccount()" style="margin-top:10px;">Hesabımı Kalıcı Olarak Sil</button>
+  </section>
+
+  <nav class="tabbar hide" id="tabbar">
+    <button class="tab on" data-tab="home" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3 1 4 2.5 1-1.5 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/></svg></button>
+    <button class="tab" data-tab="chat" onclick="go('chat')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg></button>
+    <button class="tab" data-tab="album" onclick="go('album')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg></button>
+    <button class="tab" data-tab="profile" onclick="go('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></button>
+  </nav>
+</div>
+
+<div class="lightbox hide" id="lightbox" onclick="closeLightbox()">
+  <button class="lb-close" id="lbClose" onclick="closeLightbox()"></button>
+  <img id="lbImg" alt="" />
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, deleteUser } from 'firebase/auth';
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, getDocs, writeBatch } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDwWG1WGCSi-NS3rO-Djv2ijkSYqDs_QXE",
+  authDomain: "biziki-b7739.firebaseapp.com",
+  projectId: "biziki-b7739",
+  storageBucket: "biziki-b7739.firebasestorage.app",
+  messagingSenderId: "530544789531",
+  appId: "1:530544789531:web:ae13d750ac4ab28856d0be",
+  measurementId: "G-JKETBNXFDD"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence);
+const db  = getFirestore(app);
+
+const THEME_KEY = 'biziki_theme';
+let CODE = null, ME = 0, UID = null;
+let DB = { settings:{name1:'—',name2:'',start:'',photo1:'',photo2:'',bday1:'',bday2:''}, notes:[], chat:[], photos:[], events:[], qa:{}, pet:null };
+let current = 'home';
+let unsubs = [];
+let authMode = 'login';
+let tempFace = null, tempFaceT = null;
+let lastFace = null;
+let currentRoom = 'home';
+let chatInit=false, couponInit=false;
+const NOTIF_ICON='icon.png';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const trDate = ts => { const d = ts?.toDate ? ts.toDate() : new Date(); return d.toLocaleDateString('tr-TR',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}); };
+const fmtDT = s => { const x=new Date(s); return x.toLocaleDateString('tr-TR',{day:'numeric',month:'long',weekday:'long'})+' · '+x.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}); };
+const fmtBday = s => { const x=new Date(s+'T00:00:00'); return isNaN(x)?'':x.toLocaleDateString('tr-TR',{day:'numeric',month:'long'}); };
+const toast = m => { const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200); };
+const names = () => [DB.settings.name1, DB.settings.name2];
+const myName = () => names()[ME] || 'Ben';
+const col = name => collection(db, 'couples', CODE, name);
+const metaDoc = () => doc(db, 'couples', CODE, 'meta', 'info');
+const petDoc = () => doc(db, 'couples', CODE, 'meta', 'pet');
+const userDoc = uid => doc(db, 'users', uid);
+function genCode(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s+=a[Math.floor(Math.random()*a.length)]; return s; }
+const clamp = v => Math.max(0, Math.min(100, v));
+const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+const X_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 18 18 M18 6 6 18"/></svg>`;
+const PERSON_SVG = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>`;
+const MOON_SVG = `<svg width="20" height="20" viewBox="0 0 24 24"><path d="M20 14.5 A8 8 0 1 1 9.5 4 A6.5 6.5 0 0 0 20 14.5 Z" fill="var(--lavanta)"/></svg>`;
+const SUN_SVG = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffb43d" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.3" fill="#ffd35e" stroke="none"/><path d="M12 2.5v2.5 M12 19v2.5 M2.5 12H5 M19 12h2.5 M5 5l1.7 1.7 M17.3 17.3 19 19 M19 5l-1.7 1.7 M6.7 17.3 5 19"/></svg>`;
+const HUNGER_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--mercan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M3 11h18"/></svg>`;
+const HAPPY_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--pembe)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9 10h.01 M15 10h.01"/><path d="M8.5 14q3.5 3 7 0"/></svg>`;
+const ENERGY_SVG = `<svg width="13" height="13" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z" fill="var(--lavanta)"/></svg>`;
+const CLEAN_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#39c0a0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 C12 3 6 10 6 14 a6 6 0 0 0 12 0 C18 10 12 3 12 3 Z"/></svg>`;
+$('lbClose').innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6 18 18 M18 6 6 18"/></svg>`;
+
+const ROOM_ICONS = {
+  home: `<svg viewBox="0 0 24 24"><path d="M4 11 12 4 20 11"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>`,
+  food: `<svg viewBox="0 0 24 24"><path d="M7 3v8 M5 3v4a2 2 0 0 0 4 0V3 M7 11v10"/><path d="M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4 2.5-1 2.5-4-1-5-2.5-5Z M16 12v9"/></svg>`,
+  bath: `<svg viewBox="0 0 24 24"><path d="M12 3c0 0-5 6-5 9a5 5 0 0 0 10 0c0-3-5-9-5-9Z"/></svg>`,
+  play: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16 M4 12h16"/></svg>`,
+  sleep:`<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5Z"/></svg>`
+};
+const ROOM_LABEL = { home:'Ev', food:'Yemek', bath:'Banyo', play:'Oyun', sleep:'Uyku' };
+
+const FOOD_APPLE = `<svg width="40" height="44" viewBox="0 0 40 44"><path d="M20 8 C10 8 4 16 6 26 C8 36 14 42 20 40 C26 42 32 36 34 26 C36 16 30 8 20 8Z" fill="#e8554e"/><path d="M20 8 C20 4 23 2 26 3" stroke="#6b4a2b" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M22 7 C26 5 30 7 30 11 C26 12 22 11 22 7Z" fill="#5fae5a"/></svg>`;
+const FOOD_FISH = `<svg width="52" height="34" viewBox="0 0 52 34"><path d="M4 17 C10 6 30 6 38 17 C30 28 10 28 4 17Z" fill="#7fb8e6"/><path d="M38 17 L50 8 L50 26Z" fill="#6aa6d6"/><circle cx="14" cy="15" r="2.4" fill="#234"/><path d="M22 12 q4 5 0 10" stroke="#fff" stroke-width="1.6" fill="none" opacity=".6"/></svg>`;
+const FOOD_BOWL = `<svg width="56" height="42" viewBox="0 0 56 42"><ellipse cx="28" cy="28" rx="26" ry="11" fill="#d9824a"/><path d="M4 26 a24 9 0 0 0 48 0 v4 a24 9 0 0 1 -48 0z" fill="#c06f3a"/><ellipse cx="28" cy="24" rx="22" ry="8" fill="#fff3e6"/><circle cx="20" cy="23" r="3" fill="#b9743f"/><circle cx="30" cy="22" r="3" fill="#b9743f"/><circle cx="26" cy="26" r="3" fill="#b9743f"/></svg>`;
+const BATH_SHOWER = `<svg width="46" height="56" viewBox="0 0 46 56"><rect x="14" y="4" width="18" height="12" rx="4" fill="#cfd6dd"/><rect x="20" y="16" width="6" height="14" fill="#b9c0c8"/><circle cx="17" cy="34" r="2.4" fill="#7bd3ff"/><circle cx="23" cy="38" r="2.4" fill="#7bd3ff"/><circle cx="29" cy="34" r="2.4" fill="#7bd3ff"/><circle cx="20" cy="44" r="2.4" fill="#7bd3ff"/><circle cx="26" cy="46" r="2.4" fill="#7bd3ff"/></svg>`;
+const BATH_SOAP = `<svg width="46" height="40" viewBox="0 0 46 40"><rect x="8" y="16" width="30" height="18" rx="8" fill="#ff9fc4"/><rect x="8" y="16" width="30" height="8" rx="4" fill="#ffb8d4"/><circle cx="14" cy="12" r="5" fill="#fff" opacity=".85"/><circle cx="22" cy="9" r="4" fill="#fff" opacity=".8"/><circle cx="30" cy="12" r="5" fill="#fff" opacity=".85"/></svg>`;
+const PLAY_BALL = `<svg width="46" height="46" viewBox="0 0 46 46"><circle cx="23" cy="23" r="20" fill="#ff7da0"/><path d="M23 3a20 20 0 0 1 0 40" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/><path d="M3 23a20 20 0 0 1 40 0" fill="none" stroke="#fff" stroke-width="3" opacity=".7"/><circle cx="15" cy="15" r="4" fill="#fff" opacity=".6"/></svg>`;
+const PLAY_BLOCK = `<svg width="40" height="40" viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" rx="5" fill="#ffd35e"/><rect x="5" y="5" width="30" height="30" rx="5" fill="none" stroke="#e0a92e" stroke-width="2"/><path d="M14 26 V16 l6 6 6-6 v10" stroke="#c98a1e" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const SLEEP_BED = `<svg width="92" height="56" viewBox="0 0 92 56"><rect x="6" y="30" width="80" height="16" rx="6" fill="#8e79c4"/><rect x="6" y="22" width="80" height="14" rx="7" fill="#b6a3e6"/><rect x="12" y="14" width="26" height="14" rx="6" fill="#fff" opacity=".9"/></svg>`;
+
+const DECO = {
+  home: `<svg class="scene-deco" viewBox="0 0 320 236" preserveAspectRatio="none"><rect x="22" y="26" width="78" height="62" rx="6" fill="#bfe3ff" opacity=".8"/><path d="M61 26v62 M22 57h78" stroke="#fff" stroke-width="3" opacity=".7"/><rect x="22" y="86" width="78" height="6" fill="#e8b48a"/><ellipse cx="160" cy="210" rx="120" ry="20" fill="#e8a07e" opacity=".5"/></svg>`,
+  food: `<svg class="scene-deco" viewBox="0 0 320 236" preserveAspectRatio="none"><rect x="0" y="150" width="320" height="86" fill="#e8b48a" opacity=".55"/><rect x="200" y="30" width="100" height="14" rx="4" fill="#d99a63"/><rect x="210" y="20" width="14" height="14" rx="3" fill="#c97f4a"/><rect x="240" y="16" width="14" height="18" rx="3" fill="#c97f4a"/><rect x="270" y="20" width="14" height="14" rx="3" fill="#c97f4a"/></svg>`,
+  bath: `<svg class="scene-deco" viewBox="0 0 320 236" preserveAspectRatio="none"><g stroke="#fff" stroke-width="2" opacity=".4"><path d="M0 60h320 M0 120h320 M80 0v236 M160 0v236 M240 0v236"/></g><ellipse cx="60" cy="200" rx="40" ry="14" fill="#fff" opacity=".5"/><ellipse cx="250" cy="210" rx="46" ry="14" fill="#fff" opacity=".45"/></svg>`,
+  play: `<svg class="scene-deco" viewBox="0 0 320 236" preserveAspectRatio="none"><rect x="0" y="170" width="320" height="66" fill="#c9a8f0" opacity=".5"/><circle cx="40" cy="40" r="10" fill="#ffd35e" opacity=".7"/><circle cx="280" cy="50" r="8" fill="#7bd3ff" opacity=".7"/><circle cx="160" cy="30" r="6" fill="#ff9fc4" opacity=".7"/></svg>`,
+  sleep:`<svg class="scene-deco" viewBox="0 0 320 236" preserveAspectRatio="none"><circle cx="262" cy="46" r="22" fill="#ffe9a8" opacity=".9"/><circle cx="40" cy="40" r="2" fill="#fff"/><circle cx="90" cy="70" r="1.5" fill="#fff"/><circle cx="140" cy="36" r="2" fill="#fff"/><circle cx="200" cy="80" r="1.5" fill="#fff"/><circle cx="120" cy="100" r="1.5" fill="#fff"/><circle cx="60" cy="120" r="2" fill="#fff"/></svg>`
+};
+
+function ymdDiff(from,to){
+  let y=to.getFullYear()-from.getFullYear(), m=to.getMonth()-from.getMonth(), d=to.getDate()-from.getDate();
+  if(d<0){ m--; const prev=new Date(to.getFullYear(),to.getMonth(),0); d+=prev.getDate(); }
+  if(m<0){ y--; m+=12; }
+  return {y,m,d};
+}
+function daysUntilAnniv(start){
+  const today=new Date(); today.setHours(0,0,0,0);
+  let t=new Date(today.getFullYear(), start.getMonth(), start.getDate());
+  if(t<today) t=new Date(today.getFullYear()+1, start.getMonth(), start.getDate());
+  return Math.round((t-today)/86400000);
+}
+function daysUntilBday(dateStr){
+  const d=new Date(dateStr+'T00:00:00'); if(isNaN(d)) return null;
+  const today=new Date(); today.setHours(0,0,0,0);
+  let t=new Date(today.getFullYear(), d.getMonth(), d.getDate());
+  if(t<today) t=new Date(today.getFullYear()+1, d.getMonth(), d.getDate());
+  return Math.round((t-today)/86400000);
+}
+
+function showAuth(){ $('authScreen').classList.remove('hide'); $('matchScreen').classList.add('hide'); $('tabbar').classList.add('hide'); }
+function showMatch(){ $('authScreen').classList.add('hide'); $('matchScreen').classList.remove('hide'); $('tabbar').classList.add('hide'); }
+window.enterApp = ()=>{ $('authScreen').classList.add('hide'); $('matchScreen').classList.add('hide'); $('tabbar').classList.remove('hide'); startSync(); };
+
+function applyThemeUI(dark){ $('themeToggle').checked = dark; $('themeIcon').innerHTML = dark ? SUN_SVG : MOON_SVG; }
+window.toggleTheme = function(on){
+  if(on){ document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem(THEME_KEY,'dark'); }
+  else  { document.documentElement.removeAttribute('data-theme'); localStorage.setItem(THEME_KEY,'light'); }
+  applyThemeUI(on);
+};
+applyThemeUI(localStorage.getItem(THEME_KEY)==='dark');
+  updateNotifBtn();
+
+window.setAuthMode = function(m){
+  authMode=m;
+  $('tabLogin').classList.toggle('on', m==='login');
+  $('tabSignup').classList.toggle('on', m==='signup');
+  $('authBtn').textContent = m==='login' ? 'Giriş Yap' : 'Hesap Oluştur';
+  $('authErr').textContent='';
+};
+function authErrMsg(code){
+  const map = {
+    'auth/email-already-in-use':'Bu e-posta zaten kayıtlı. Giriş yapmayı dene.',
+    'auth/invalid-email':'Geçerli bir e-posta adresi gir.',
+    'auth/weak-password':'Şifre en az 6 karakter olmalı.',
+    'auth/invalid-credential':'E-posta veya şifre hatalı.',
+    'auth/wrong-password':'E-posta veya şifre hatalı.',
+    'auth/user-not-found':'Bu hesap bulunamadı, önce Kayıt Ol.',
+    'auth/too-many-requests':'Çok deneme yaptın, biraz sonra tekrar dene.',
+    'auth/network-request-failed':'İnternet bağlantını kontrol et.',
+    'auth/unauthorized-domain':'Bu alan adı yetkili değil (Firebase → Auth → Settings → Authorized domains).'
+  };
+  return map[code] || 'Bir hata oldu: '+code;
+}
+window.doAuth = async ()=>{
+  const email=$('authEmail').value.trim(), pass=$('authPass').value;
+  $('authErr').textContent='';
+  if(!email||!pass){ $('authErr').textContent='E-posta ve şifre gir.'; return; }
+  $('authBtn').disabled=true;
+  try{
+    if(authMode==='signup') await createUserWithEmailAndPassword(auth, email, pass);
+    else await signInWithEmailAndPassword(auth, email, pass);
+  }catch(e){ $('authErr').textContent = authErrMsg(e.code); $('authBtn').disabled=false; }
+};
+
+onAuthStateChanged(auth, async user=>{
+  $('authBtn').disabled=false;
+  if(!user){ UID=null; CODE=null; showAuth(); return; }
+  UID = user.uid;
+  try{
+    const snap = await getDoc(userDoc(UID));
+    if(snap.exists() && snap.data().coupleCode){ CODE = snap.data().coupleCode; ME = snap.data().slot || 0; enterApp(); }
+    else { showMatch(); }
+  }catch(e){ console.error(e); showMatch(); }
+});
+
+function show(id){ ['matchStep1','matchCreate','matchCreated','matchJoin'].forEach(x=>$(x).style.display = x===id?'block':'none'); }
+window.back1 = ()=>show('matchStep1');
+window.showJoin = ()=>{ $('joinErr').textContent=''; show('matchJoin'); };
+window.startCreate = ()=>{ $('cStart').value = $('cStart').value || new Date().toISOString().slice(0,10); show('matchCreate'); };
+
+window.createCouple = async ()=>{
+  const n1=$('cName1').value.trim(), start=$('cStart').value;
+  if(!n1||!start){ toast('Adını ve tarihi doldur'); return; }
+  let code=genCode(), tries=0;
+  while(tries++<5){ if(!(await getDoc(doc(db,'couples',code,'meta','info'))).exists()) break; code=genCode(); }
+  await setDoc(doc(db,'couples',code,'meta','info'), { name1:n1, name2:'', uid1:UID, uid2:'', photo1:'', photo2:'', bday1:'', bday2:'', start, createdAt:serverTimestamp() });
+  await setDoc(userDoc(UID), { email:auth.currentUser.email, coupleCode:code, slot:0 });
+  CODE=code; ME=0;
+  $('newCode').textContent=code; show('matchCreated');
+};
+
+window.copyCode = ()=>{ navigator.clipboard?.writeText($('newCode').textContent); toast('Kod kopyalandı'); };
+window.copyCode2 = ()=>{ navigator.clipboard?.writeText(CODE); toast('Kod kopyalandı'); };
+
+window.joinCouple = async ()=>{
+  const code=$('joinCode').value.trim().toUpperCase(), mn_raw=$('joinName').value.trim();
+  $('joinErr').textContent='';
+  if(!code||!mn_raw){ $('joinErr').textContent='Kodu ve adını gir.'; return; }
+  const snap = await getDoc(doc(db,'couples',code,'meta','info'));
+  if(!snap.exists()){ $('joinErr').textContent='Bu kodda çift bulunamadı'; return; }
+  const s=snap.data();
+  let me;
+  if(s.uid1===UID){ me=0; }
+  else if(!s.uid2){ await updateDoc(doc(db,'couples',code,'meta','info'), {name2:mn_raw, uid2:UID}); me=1; }
+  else if(s.uid2===UID){ me=1; }
+  else { $('joinErr').textContent='Bu çifte zaten biri katılmış'; return; }
+  await setDoc(userDoc(UID), { email:auth.currentUser.email, coupleCode:code, slot:me });
+  CODE=code; ME=me;
+  enterApp();
+};
+
+window.logout = async ()=>{
+  if(confirm('Çıkış yapılsın mı? Hesabın ve verilerin bulutta güvende kalır, tekrar girersin.')){
+    unsubs.forEach(u=>u()); unsubs=[];
+    try{ await signOut(auth); }catch(e){}
+  }
+};
+
+function startSync(){
+  unsubs.forEach(u=>u()); unsubs=[];
+  $('syncDot').classList.add('on');
+  unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); } }));
+  unsubs.push(onSnapshot(petDoc(), s=>{ DB.pet = s.exists()? s.data() : null; if(current==='pet') renderPet(); if(current==='home') renderPetMini(); }));
+  unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
+    unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{
+    DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(current==='chat') renderChat();
+    if(chatInit){ snap.docChanges().forEach(ch=>{ if(ch.type==='added'){ const m=ch.doc.data(); if(m.authorIdx!==ME){ pushNotif(m.author||'Yeni mesaj', m.text||''); } } }); }
+    else { chatInit=true; }
+  }));
+  unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
+  unsubs.push(onSnapshot(query(col('events'), orderBy('date','asc')), snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='calendar') renderEvents(); }));
+  unsubs.push(onSnapshot(doc(db,'couples',CODE,'meta','qa'), s=>{ DB.qa = s.exists()? (s.data().items||{}) : {}; if(current==='qa') renderQA(); }));
+}
+
+window.go = function(name){
+  current=name;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', t.dataset.tab===name));
+  document.querySelector('.screen.active').scrollTop=0;
+  if(name==='home') renderHome();
+  if(name==='notes') renderNotes();
+  if(name==='chat') renderChat();
+  if(name==='album') renderPhotos();
+  if(name==='calendar') renderEvents();
+  if(name==='qa') renderQA();
+  if(name==='pet'){ renderPet(); if(!localStorage.getItem('dragHint2')){ setTimeout(()=>toast('Yiyecek ve oyuncakları sürükleyip pet\'e götür. Uyku odasında pet\'i yatağa sürükle.'),450); localStorage.setItem('dragHint2','1'); } }
+  if(name==='profile') fillProfile();
+};
+/* =================== BİLDİRİMLER =================== */
+function pushNotif(title, body){
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,{body, icon:NOTIF_ICON, badge:NOTIF_ICON, tag:title, vibrate:[120,60,120]})).catch(()=>fallbackNotif(title,body));
+    } else fallbackNotif(title,body);
+  }catch(e){ fallbackNotif(title,body); }
+}
+function fallbackNotif(title,body){ try{ new Notification(title,{body, icon:NOTIF_ICON}); }catch(e){} }
+window.askNotif = async function(){
+  if(!('Notification' in window)){ toast('Bu tarayıcı bildirim desteklemiyor'); return; }
+  if(Notification.permission==='granted'){ toast('Bildirimler zaten açık'); updateNotifBtn(); return; }
+  if(Notification.permission==='denied'){ toast('Engelli. Tarayıcı/site ayarlarından açmalısın'); return; }
+  const p = await Notification.requestPermission();
+  updateNotifBtn();
+  if(p==='granted') pushNotif('Bizİki', 'Bildirimler açıldı');
+};
+function updateNotifBtn(){ const b=$('notifBtn'); if(!b) return; const on=('Notification' in window)&&Notification.permission==='granted'; b.textContent= on?'Açık':'Aç'; b.style.opacity= on?'1':'.85'; }
+function petNotify(c){
+  if(!DB.pet) return;
+  const name=DB.pet.name||'Pet';
+  const check=(key,cond,title,body)=>{ const flag='petnotif_'+key; if(cond){ if(localStorage.getItem(flag)!=='1'){ localStorage.setItem(flag,'1'); pushNotif(title,body); } } else { localStorage.removeItem(flag); } };
+  check('hunger', c.hunger<25, name+' acıktı', 'Karnım gurulduyor, bir şeyler ver');
+  check('energy', c.energy<25, name+' uykulu', 'Gözlerim kapanıyor, uyutur musun');
+  check('clean',  c.clean<25,  name+' kirlendi', 'Banyo zamanı geldi');
+  check('happy',  c.happy<25,  name+' mutsuz', 'Biraz ilgi ister misin');
+}
+
+function renderHome(){
+  const s=DB.settings;
+  const has2 = !!(s.name2 && s.name2.trim());
+  $('nm1').textContent=s.name1||'—'; $('nm1').className='nm';
+  $('nm2').textContent=has2 ? s.name2 : 'Bekliyor...'; $('nm2').className='nm'+(has2?'':' wait');
+  $('av1').innerHTML = s.photo1 ? `<img src="${s.photo1}" alt="">` : esc((s.name1||'?')[0].toUpperCase());
+  $('av2').innerHTML = (has2 && s.photo2) ? `<img src="${s.photo2}" alt="">` : (has2 ? esc(s.name2[0].toUpperCase()) : '?');
+
+  if(s.start){
+    const start=new Date(s.start+'T00:00:00'), today=new Date(); today.setHours(0,0,0,0);
+    const diff=ymdDiff(start,today);
+    const total=Math.max(0,Math.floor((today-start)/86400000));
+    const parts=[];
+    if(diff.y>0) parts.push(diff.y+' yıl');
+    parts.push(diff.m+' ay');
+    parts.push(diff.d+' gün');
+    $('dayCount').textContent = 'Birlikte ' + parts.join(' ');
+    $('dayTotal').textContent = 'toplam ' + total + ' gün';
+
+    const specials=[{lbl:'Yıl dönümü', days:daysUntilAnniv(start), color:'var(--mercan)'}];
+    if(s.bday1){ const d=daysUntilBday(s.bday1); if(d!=null) specials.push({lbl:(s.name1||'')+"'nin doğum günü", days:d, color:'var(--pembe)'}); }
+    if(s.bday2){ const d=daysUntilBday(s.bday2); if(d!=null) specials.push({lbl:(s.name2||'')+"'nin doğum günü", days:d, color:'var(--lavanta)'}); }
+    
+        const todayKey=new Date().toISOString().slice(0,10);
+    specials.forEach(sp=>{ if(sp.days===0 && localStorage.getItem('ev_notified_'+sp.lbl+todayKey)!=='1'){ localStorage.setItem('ev_notified_'+sp.lbl+todayKey,'1'); pushNotif('Özel gün', sp.lbl+' bugün!'); } });
+    $('specialDays').innerHTML = specials.map(sp=>`<div class="sd${sp.days===0?' today':''}"><span class="sd-dot" style="background:${sp.color}"></span><span class="sd-lbl">${esc(sp.lbl)}</span><span class="sd-d">${sp.days===0?'Bugün!':sp.days+' gün'}</span></div>`).join('');
+  } else {
+    $('dayCount').textContent='Birlikte 0 gün'; $('dayTotal').textContent=''; $('specialDays').innerHTML='';
+  }
+  renderPetMini();
+}
+
+/* =================== PET ÇİZİM MOTORU =================== */
+const PAL = {
+  cat:    { body:'#f4b183', shade:'#e89a64', ear:'#f4b183', earIn:'#f7c5d0', nose:'#e07a8c', cheek:'#f7a8bc' },
+  dog:    { body:'#dca878', shade:'#c08a52', ear:'#b9824f', earIn:'#a06f42', nose:'#3a2a2a', cheek:'#f0a890' },
+  rabbit: { body:'#fbe1e6', shade:'#f3c4cf', ear:'#fbe1e6', earIn:'#f6a8bc', nose:'#e07a8c', cheek:'#f7a8bc' }
+};
+const INK = '#3a2a3a';
+function earsSVG(sp,p){
+  if(sp==='cat') return `<polygon points="58,52 44,8 92,40" fill="${p.ear}"/><polygon points="62,46 54,20 82,40" fill="${p.earIn}"/><polygon points="142,52 156,8 108,40" fill="${p.ear}"/><polygon points="138,46 146,20 118,40" fill="${p.earIn}"/>`;
+  if(sp==='dog') return `<ellipse cx="46" cy="92" rx="20" ry="40" fill="${p.ear}" transform="rotate(-12 46 92)"/><ellipse cx="154" cy="92" rx="20" ry="40" fill="${p.ear}" transform="rotate(12 154 92)"/>`;
+  return `<ellipse cx="76" cy="34" rx="13" ry="38" fill="${p.ear}"/><ellipse cx="76" cy="36" rx="6" ry="26" fill="${p.earIn}"/><ellipse cx="124" cy="34" rx="13" ry="38" fill="${p.ear}"/><ellipse cx="124" cy="36" rx="6" ry="26" fill="${p.earIn}"/>`;
+}
+function eyesSVG(face){
+  const L=78,R=122,Y=98;
+  if(face==='happy') return `<path d="M${L-10} ${Y} Q${L} ${Y-12} ${L+10} ${Y}" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M${R-10} ${Y} Q${R} ${Y-12} ${R+10} ${Y}" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  if(face==='sleepy') return `<line x1="${L-10}" y1="${Y}" x2="${L+10}" y2="${Y}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><line x1="${R-10}" y1="${Y}" x2="${R+10}" y2="${Y}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`;
+  if(face==='love') return `${heart(L,Y-2,11,'#ff5d7d')}${heart(R,Y-2,11,'#ff5d7d')}`;
+  if(face==='sad') return `<circle cx="${L}" cy="${Y+2}" r="9" fill="${INK}"/><circle cx="${L+3}" cy="${Y-1}" r="3" fill="#fff"/><circle cx="${R}" cy="${Y+2}" r="9" fill="${INK}"/><circle cx="${R+3}" cy="${Y-1}" r="3" fill="#fff"/><line x1="${L-11}" y1="${Y-12}" x2="${L+9}" y2="${Y-7}" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><line x1="${R+11}" y1="${Y-12}" x2="${R-9}" y2="${Y-7}" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  return `<circle cx="${L}" cy="${Y}" r="9" fill="${INK}"/><circle cx="${L+3}" cy="${Y-3}" r="3" fill="#fff"/><circle cx="${R}" cy="${Y}" r="9" fill="${INK}"/><circle cx="${R+3}" cy="${Y-3}" r="3" fill="#fff"/>`;
+}
+function heart(cx,cy,s,fill){ return `<path transform="translate(${cx} ${cy}) scale(${s/16})" d="M0 4 C0 -2 -8 -2 -8 3 C-8 8 0 12 0 14 C0 12 8 8 8 3 C8 -2 0 -2 0 4 Z" fill="${fill}"/>`; }
+function mouthSVG(sp,face){
+  const cx=100, y=124; let m='';
+  if(face==='hungry'){ m=`<ellipse cx="${cx}" cy="${y+4}" rx="8" ry="10" fill="${INK}"/><ellipse cx="${cx}" cy="${y+8}" rx="4" ry="4" fill="#ff8aa0"/>`; }
+  else if(face==='sleepy'){ m=`<circle cx="${cx}" cy="${y+2}" r="4" fill="${INK}"/>`; }
+  else if(face==='sad'){ m=`<path d="M${cx-12} ${y+8} Q${cx} ${y-2} ${cx+12} ${y+8}" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`; }
+  else if(face==='happy'||face==='love'){ m=`<path d="M${cx-13} ${y} Q${cx} ${y+15} ${cx+13} ${y}" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`; }
+  else { m=`<path d="M${cx-9} ${y+1} Q${cx} ${y+9} ${cx+9} ${y+1}" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/>`; }
+  if(sp==='dog' && (face==='happy'||face==='hungry'||face==='love')) m+=`<ellipse cx="${cx}" cy="${y+12}" rx="6" ry="9" fill="#ff8aa0"/>`;
+  if(sp==='rabbit' && face!=='hungry' && face!=='sleepy') m+=`<rect x="${cx-5}" y="${y+2}" width="4" height="7" rx="1.5" fill="#fff"/><rect x="${cx+1}" y="${y+2}" width="4" height="7" rx="1.5" fill="#fff"/>`;
+  return m;
+}
+function extrasSVG(sp,face){
+  let e=''; const co=(face==='love')?0.85:0.5;
+  e+=`<circle cx="62" cy="116" r="10" fill="${PAL[sp].cheek}" opacity="${co}"/><circle cx="138" cy="116" r="10" fill="${PAL[sp].cheek}" opacity="${co}"/>`;
+  if(sp==='cat'){ e+=`<g stroke="${INK}" stroke-width="2" opacity=".5" stroke-linecap="round"><line x1="40" y1="112" x2="62" y2="116"/><line x1="40" y1="122" x2="62" y2="120"/><line x1="160" y1="112" x2="138" y2="116"/><line x1="160" y1="122" x2="138" y2="120"/></g>`; }
+  if(face==='sleepy'){ e+=`<text x="150" y="60" font-size="18" fill="${INK}" opacity=".55" font-family="sans-serif" font-weight="700">z</text><text x="164" y="46" font-size="13" fill="${INK}" opacity=".4" font-family="sans-serif" font-weight="700">z</text>`; }
+  if(face==='hungry'){ e+=`<path d="M150 56 q6 8 0 14 q-6 -6 0 -14" fill="#7bd3ff" opacity=".8"/>`; }
+  if(face==='love'){ e+=heart(40,60,7,'#ff8aa0')+heart(160,52,6,'#ff8aa0')+heart(150,150,5,'#ffb3c6'); }
+  return e;
+}
+function dirtSVG(clean){
+  if(clean>=32) return '';
+  const op = (0.5*(32-clean)/32).toFixed(2);
+  return `<g fill="#7a5a3a" opacity="${op}"><circle cx="78" cy="168" r="6"/><circle cx="118" cy="178" r="5"/><circle cx="96" cy="186" r="4"/><circle cx="128" cy="162" r="4"/></g>`;
+}
+function accessorySVG(level){
+  if(level>=5){ return `<g transform="translate(100 30)"><path d="M-22 8 L-22 -8 L-11 2 L0 -12 L11 2 L22 -8 L22 8 Z" fill="#ffd35e" stroke="#e0a92e" stroke-width="2" stroke-linejoin="round"/><circle cx="0" cy="-12" r="3" fill="#ff7da0"/><circle cx="-22" cy="-8" r="2.5" fill="#7bd3ff"/><circle cx="22" cy="-8" r="2.5" fill="#7bd3ff"/></g>`; }
+  if(level>=3){ return `<g transform="translate(138 50)"><path d="M0 0 L-12 -8 L-12 8 Z" fill="#ff7da0"/><path d="M0 0 L12 -8 L12 8 Z" fill="#ff7da0"/><circle cx="0" cy="0" r="4" fill="#ff5d8a"/></g>`; }
+  return '';
+}
+function canBlink(face){ return face==='normal'||face==='happy'||face==='sad'||face==='hungry'; }
+function petSVG(sp, face, level, size, ids, clean){
+  const p=PAL[sp]||PAL.cat;
+  const cb = canBlink(face);
+  let tail='';
+  if(sp==='cat') tail=`<g class="pet-tail" style="transform-box:view-box;transform-origin:150px 170px"><path d="M150 170 q34 -4 32 -38 q-1 -16 -13 -17 q9 7 5 21 q-4 16 -24 22 Z" fill="${p.body}"/></g>`;
+  else if(sp==='dog') tail=`<g class="pet-tail" style="transform-box:view-box;transform-origin:148px 162px"><path d="M148 162 q24 -2 28 -26 q2 -12 -8 -13 q6 8 0 18 q-6 12 -20 13 Z" fill="${p.ear}"/></g>`;
+  else tail=`<circle cx="152" cy="180" r="12" fill="#fff"/><circle cx="152" cy="180" r="12" fill="${p.shade}" opacity=".22"/>`;
+  const body=`<g class="pet-breathe"><ellipse cx="100" cy="172" rx="46" ry="32" fill="${p.body}"/><path d="M54 172 a46 32 0 0 0 92 0 q-46 14 -92 0" fill="${p.shade}" opacity=".3"/><ellipse cx="100" cy="180" rx="22" ry="14" fill="#fff" opacity=".35"/>${dirtSVG(clean??100)}</g>`;
+  const feet=`<ellipse cx="80" cy="197" rx="13" ry="8" fill="${p.shade}"/><ellipse cx="120" cy="197" rx="13" ry="8" fill="${p.shade}"/>`;
+  const eyesId = ids?'petEyes':'';
+  const mouthId = ids?'petMouth':'';
+  const head=`<g class="pet-head">${earsSVG(sp,p)}<circle cx="100" cy="106" r="62" fill="${p.body}"/><path d="M38 106 a62 62 0 0 0 124 0 q-62 24 -124 0" fill="${p.shade}" opacity=".3"/>${extrasSVG(sp,face)}<g id="${eyesId}" class="pet-eyes${cb?' pet-blink':''}">${eyesSVG(face)}</g>${sp==='dog'?`<ellipse cx="100" cy="114" rx="8" ry="6" fill="${p.nose}"/>`:`<path d="M100 112 l-6 -5 l12 0 Z" fill="${p.nose}"/>`}<g id="${mouthId}">${mouthSVG(sp,face)}</g>${accessorySVG(level||1)}</g>`;
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">${tail}${body}${feet}${head}</svg>`;
+}
+function eggSVG(size){
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="108" rx="62" ry="78" fill="#fff6ec"/><ellipse cx="100" cy="108" rx="62" ry="78" fill="none" stroke="#f0d9c2" stroke-width="3"/><path d="M44 96 l14 10 l10 -12 l14 12 l12 -10 l14 12 l12 -10 l14 10 l10 -12" fill="none" stroke="#e8c39e" stroke-width="3" stroke-linejoin="round"/><circle cx="82" cy="120" r="7" fill="${INK}"/><circle cx="84" cy="117" r="2.5" fill="#fff"/><circle cx="118" cy="120" r="7" fill="${INK}"/><circle cx="120" cy="117" r="2.5" fill="#fff"/><circle cx="68" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><circle cx="132" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><path d="M92 132 Q100 138 108 132" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+}
+
+const SPECIES = { cat:{name:'Kedi'}, dog:{name:'Köpek'}, rabbit:{name:'Tavşan'} };
+function stageName(lv){ if(lv<=2)return 'bebek'; if(lv<=4)return 'çocuk'; return 'yetişkin'; }
+function stageSize(lv){ if(lv<=2)return 116; if(lv<=4)return 132; return 150; }
+function xpForLevel(l){ return l*60; }
+function tickMs(pet){ const t=pet.lastTick; if(!t) return Date.now(); if(typeof t==='number') return t; if(t.toMillis) return t.toMillis(); if(t.seconds!=null) return t.seconds*1000; return Date.now(); }
+function decay(pet){
+  const hours=Math.max(0,(Date.now()-tickMs(pet))/3600000);
+  return {
+    hunger:clamp((pet.hunger??80)-hours*8),
+    happy: clamp((pet.happy??80)-hours*7.2),
+    energy:clamp((pet.energy??80)-hours*5.6),
+    clean: clamp((pet.clean??80)-hours*6)
+  };
+}
+function mood(pet,c){
+  if(pet.loveUntil && Date.now() < pet.loveUntil) return {face:'love', text:'Size aşık!', love:true};
+  if(c.hunger<25) return {face:'hungry', text:'Karnım gurulduyor...', love:false};
+  if(c.energy<25) return {face:'sleepy', text:'Uykum geldi...', love:false};
+  if(c.clean<25)  return {face:'sad', text:'Banyo zamanı, kirlendim', love:false};
+  if(c.happy<25)  return {face:'sad', text:'Biraz sever misin?', love:false};
+  const avg=(c.hunger+c.happy+c.energy+c.clean)/4;
+  if(avg>75) return {face:'happy', text:'Çok mutlu!', love:false};
+  return {face:'normal', text:'Keyfi yerinde', love:false};
+}
+const barsHTML=(c,withPct)=>{
+  const row=(ic,cls,key,val)=>`<div class="bar"><span class="bi">${ic}</span><div class="track"><div class="fill ${cls}" data-bar="${key}" style="width:${val}%"></div></div>${withPct?`<span class="pct" data-pct="${key}">${Math.round(val)}%</span>`:''}</div>`;
+  return `<div class="bars">${row(HUNGER_SVG,'h','hunger',c.hunger)}${row(HAPPY_SVG,'p','happy',c.happy)}${row(ENERGY_SVG,'e','energy',c.energy)}${row(CLEAN_SVG,'c','clean',c.clean)}</div>`;
+};
+function updateBars(cont,c){
+  if(!cont) return;
+  cont.querySelectorAll('[data-bar]').forEach(f=>{ const v=c[f.dataset.bar]; if(v!=null) f.style.width=v+'%'; });
+  cont.querySelectorAll('[data-pct]').forEach(p=>{ const v=c[p.dataset.pct]; if(v!=null) p.textContent=Math.round(v)+'%'; });
+}
+function applyFace(face){
+  if(!DB.pet) return;
+  const sp=DB.pet.species;
+  const eyes=$('petEyes'), mouth=$('petMouth');
+  if(eyes){ eyes.innerHTML=eyesSVG(face); eyes.setAttribute('class','pet-eyes'+(canBlink(face)?' pet-blink':'')); }
+  if(mouth){ mouth.innerHTML=mouthSVG(sp,face); }
+}
+function updateXP(){
+  if(!DB.pet) return;
+  const need=xpForLevel(DB.pet.level||1), pct=Math.min(100,(DB.pet.xp||0)/need*100);
+  const f=$('xpFill'); if(f) f.style.width=pct+'%';
+  const l=$('xpTopL'); if(l) l.textContent='Seviye '+(DB.pet.level||1);
+  const r=$('xpTopR'); if(r) r.textContent=Math.floor(DB.pet.xp||0)+' / '+need+' XP';
+}
+function scheduleLoveEnd(){
+  clearTimeout(window._loveT);
+  if(DB.pet && DB.pet.loveUntil && DB.pet.loveUntil>Date.now()){
+    window._loveT=setTimeout(()=>{ if(current==='pet'){ tickPet(); } else if(current==='home'){ renderPetMini(); } }, DB.pet.loveUntil-Date.now()+80);
+  }
+}
+function say(text){
+  const b=$('petBubble'); if(!b) return;
+  b.textContent=text; b.style.visibility='visible';
+  clearTimeout(window._bt); window._bt=setTimeout(()=>{ const bb=$('petBubble'); if(bb) bb.style.visibility='hidden'; }, 2200);
+}
+const TAP_LINES={ cat:['Miyav, seni seviyorum','Mırrr mırrr','Kucağına al beni','Oynayalım mı?'], dog:['Hav hav!','Seni çok seviyorum!','Top at bana!','Kuyruk sallıyorum'], rabbit:['Fışş fışş','Havuç var mı?','Zıplıyorum!','Yanaklarım yumuşacık'] };
+const CARE_LINES={ feed:['Mmm çok lezzetli!','Teşekkürler','Karnım doydu!'], play:['Çok eğlendim!','Bir daha bir daha!','Yoruldum ama değdi'], love:['Mırrr, seni seviyorum','En çok bunu seviyorum','Kalbim pıt pıt'], sleep:['Zzz... iyi geceler','Tatlı rüyalar','Dinlendim, teşekkürler'], bath:['Köpük köpük!','Pırıl pırıl oldum','Temizlik harika'] };
+
+function tickPet(){
+  if(!DB.pet) return;
+  const c=decay(DB.pet);
+  updateBars($('petBars'), c);
+  const md=mood(DB.pet,c);
+  const mt=$('petMoodText'); if(mt) mt.textContent=md.text+' · '+stageName(DB.pet.level)+' '+SPECIES[DB.pet.species].name;
+  if(!tempFace && md.face!==lastFace){ applyFace(md.face); lastFace=md.face; }
+}
+function tickMini(){
+  if(!DB.pet) return;
+  const cont=document.querySelector('#petMini .bars');
+  if(cont) updateBars(cont, decay(DB.pet));
+}
+
+window.boopPet = function(){ care('love'); };
+
+window.goRoom = function(room){
+  currentRoom=room;
+  renderScene(room);
+  document.querySelectorAll('.room-tab').forEach(t=>t.classList.toggle('on', t.dataset.room===room));
+  const sc=$('petScene'); if(sc){ sc.classList.toggle('sleep', room==='sleep'); }
+};
+
+function renderPetMini(){
+  const m=$('petMini'); if(!m) return;
+  if(!DB.pet){ m.innerHTML=`<div class="pet-mini" onclick="go('pet')"><div class="pm-art">${eggSVG(58)}</div><div class="pm-body"><div class="pm-top"><span class="pm-name">Bir pet sahiplenin!</span><span class="pm-lv">yeni</span></div><div class="pm-mood">Yumurtanız sizi bekliyor</div></div></div>`; return; }
+  const c=decay(DB.pet), md=mood(DB.pet,c);
+  m.innerHTML=`<div class="pet-mini" onclick="go('pet')"><div class="pm-art">${petSVG(DB.pet.species, md.face, DB.pet.level, 58, false, c.clean)}</div><div class="pm-body"><div class="pm-top"><span class="pm-name">${esc(DB.pet.name)}</span><span class="pm-lv">Sv ${DB.pet.level}</span></div>${barsHTML(c,false)}<div class="pm-mood">${esc(md.text)}</div></div></div>`;
+  scheduleLoveEnd();
+}
+
+function petMover(face, sz, clean, left, top){
+  return `<div class="pet-mover" style="left:${left};top:${top}"><div class="big" id="petBig" ><span class="boopwrap">${petSVG(DB.pet.species, face, DB.pet.level, sz, true, clean)}</span></div></div>`;
+}
+function renderScene(room){
+  const sc=$('petScene'); if(!sc||!DB.pet) return;
+  const c=decay(DB.pet), md=mood(DB.pet,c), face=tempFace||md.face, sz=stageSize(DB.pet.level);
+  lastFace=face;
+  let inner = `<div class="scene-bg scene-${room}"></div>${DECO[room]||''}`;
+  if(room==='home'){
+    inner += petMover(face,sz,c.clean,'50%','52%');
+    inner += `<div class="pet-hint">Sevmek için dokun</div>`;
+  } else if(room==='food'){
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="feed" style="left:14%;top:62%">${FOOD_APPLE}</button>`;
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="feed" style="left:46%;top:66%">${FOOD_BOWL}</button>`;
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="feed" style="left:74%;top:60%">${FOOD_FISH}</button>`;
+    inner += petMover(face,sz,c.clean,'50%','40%');
+    inner += `<div class="pet-hint">Yiyeceği sürükleyip bana getir</div>`;
+  } else if(room==='bath'){
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="bath" style="left:16%;top:18%">${BATH_SHOWER}</button>`;
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="bath" style="left:68%;top:60%">${BATH_SOAP}</button>`;
+    inner += petMover(face,sz,c.clean,'46%','46%');
+    inner += `<div class="pet-hint">Sabunu veya duşu sürükleyip yıka</div>`;
+  } else if(room==='play'){
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="play" style="left:20%;top:60%">${PLAY_BALL}</button>`;
+    inner += `<button class="hotspot drag-obj obj-hint" data-care="play" style="left:72%;top:62%">${PLAY_BLOCK}</button>`;
+    inner += petMover(face,sz,c.clean,'50%','42%');
+    inner += `<div class="pet-hint">Topu sürükleyip bana at</div>`;
+  } else if(room==='sleep'){
+    inner += `<button class="hotspot" id="bedTarget" style="left:50%;top:70%;transform:translateX(-50%)">${SLEEP_BED}</button>`;
+    inner += petMover(face,sz,c.clean,'50%','52%');
+    inner += `<div class="pet-hint">Beni yatağa sürükle</div>`;
+  }
+  sc.innerHTML = inner;
+  bindSceneDrag();
+}
+
+/* ===== SÜRÜKLE-BIRAK ===== */
+function centerOf(el){ const r=el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
+function bindSceneDrag(){
+  const scene=$('petScene'); if(!scene) return;
+  scene.querySelectorAll('.drag-obj').forEach(el=> el.addEventListener('pointerdown', e=>startDragObj(e, el)));
+  const big=$('petBig'); if(big) big.addEventListener('pointerdown', e=>startDragPet(e, big));
+}
+function startDragObj(e, el){
+  e.preventDefault();
+  const careType=el.dataset.care;
+  const sx=e.clientX, sy=e.clientY;
+  let dragging=false;
+  const r0=el.getBoundingClientRect();
+  try{ el.setPointerCapture(e.pointerId); }catch(_){}
+  function move(ev){
+    const dx=ev.clientX-sx, dy=ev.clientY-sy;
+    if(!dragging){ if(Math.hypot(dx,dy)<6) return; dragging=true; el.classList.add('dragging'); el.classList.remove('obj-hint'); }
+    el.style.transition='none';
+    el.style.transform=`translate(${dx}px,${dy}px) scale(1.12)`;
+    const pet=$('petBig');
+    if(pet){ const pc=centerOf(pet); const near=Math.hypot((r0.left+r0.width/2+dx)-pc.x,(r0.top+r0.height/2+dy)-pc.y)<72; pet.classList.toggle('drop-hover',near); }
+  }
+  function up(ev){
+    el.removeEventListener('pointermove',move); el.removeEventListener('pointerup',up); el.removeEventListener('pointercancel',up);
+    const pet=$('petBig'); if(pet) pet.classList.remove('drop-hover');
+    if(!dragging){ el.style.transform=''; return; }
+    const dx=ev.clientX-sx, dy=ev.clientY-sy;
+    let hit=false;
+    if(pet){ const pc=centerOf(pet); hit=Math.hypot((r0.left+r0.width/2+dx)-pc.x,(r0.top+r0.height/2+dy)-pc.y)<82; }
+    if(hit) successDrop(el, pet, careType); else snapBack(el);
+  }
+  el.addEventListener('pointermove',move); el.addEventListener('pointerup',up); el.addEventListener('pointercancel',up);
+}
+function successDrop(el, pet, careType){
+  const er=el.getBoundingClientRect();
+  if(pet){ const pc=centerOf(pet); const fx=pc.x-(er.left+er.width/2), fy=pc.y-(er.top+er.height/2);
+    el.style.transition='transform .28s ease, opacity .28s ease';
+    el.style.transform=`translate(${fx}px,${fy}px) scale(.2)`; el.style.opacity='0'; }
+  else { el.style.transition='opacity .25s'; el.style.opacity='0'; }
+  care(careType);
+  setTimeout(()=>{ el.style.transition='none'; el.style.transform=''; el.style.opacity=''; void el.offsetWidth; el.style.transition=''; el.classList.remove('dragging'); el.classList.add('obj-hint'); }, 320);
+}
+function snapBack(el){
+  el.style.transition='transform .32s cubic-bezier(.34,1.4,.5,1)';
+  el.style.transform='';
+  setTimeout(()=>{ el.style.transition=''; el.classList.remove('dragging'); el.classList.add('obj-hint'); }, 340);
+}
+function startDragPet(e, big){
+  e.preventDefault();
+  const sx=e.clientX, sy=e.clientY;
+  let mode=null; // null=henüz değil, 'noop', 'drag'
+  const mover=big.closest('.pet-mover');
+  try{ big.setPointerCapture(e.pointerId); }catch(_){}
+  const bed=$('bedTarget');
+  function move(ev){
+    const dx=ev.clientX-sx, dy=ev.clientY-sy;
+    if(!mode){ if(Math.hypot(dx,dy)<6) return; mode = (currentRoom==='sleep') ? 'drag' : 'noop'; if(mode==='drag') big.style.animation='none'; }
+    if(mode==='noop') return;
+    mover.style.transition='none';
+    mover.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    if(bed){ const bc=centerOf(bed); const near=Math.hypot(ev.clientX-bc.x, ev.clientY-bc.y)<72; bed.classList.toggle('drop-hover',near); }
+  }
+  function up(ev){
+    big.removeEventListener('pointermove',move); big.removeEventListener('pointerup',up); big.removeEventListener('pointercancel',up);
+    if(bed) bed.classList.remove('drop-hover');
+    if(!mode){ boopPet(); return; }      // dokunma = sev
+    if(mode==='noop') return;            // başka odada sürükleme denendi, hiçbir şey
+    let hit=false;
+    if(bed){ const bc=centerOf(bed); hit=Math.hypot(ev.clientX-bc.x, ev.clientY-bc.y)<82; }
+    mover.style.transition='transform .42s cubic-bezier(.34,1.3,.5,1)';
+    mover.style.transform='';
+    setTimeout(()=>{ mover.style.transition=''; big.style.animation=''; }, 440);
+    if(hit) care('sleep');
+  }
+  big.addEventListener('pointermove',move); big.addEventListener('pointerup',up); big.addEventListener('pointercancel',up);
+}
+function renderPet(){
+  const b=$('petBody'); if(!b) return;
+  if(!DB.pet){
+    b.innerHTML=`<div style="text-align:center;"><div class="egg-art">${eggSVG(150)}</div><p style="margin:16px 0 6px;font-weight:800;font-size:16px;">Yumurtanız çatlamak üzere!</p><label>Pet'inize bir isim verin</label><input id="petName" placeholder="örn. Mırmır" /><button class="btn" onclick="hatchPet()">Yumurtayı Çatlat</button><p style="font-size:11px;color:var(--soluk);margin-top:12px;">Tür sürpriz olsun (kedi, köpek veya tavşan)</p></div>`;
+    return;
+  }
+  const p=DB.pet, c=decay(p), md=mood(p,c), face=tempFace||md.face;
+  const need=xpForLevel(p.level), xpPct=Math.min(100,(p.xp||0)/need*100);
+  const bubbleText = tempFace ? (window._lastSay||md.text) : md.text;
+  const tabs = Object.keys(ROOM_LABEL).map(r=>`<button class="room-tab${r===currentRoom?' on':''}" data-room="${r}" onclick="goRoom('${r}')">${ROOM_ICONS[r]}<span class="rt-lbl">${ROOM_LABEL[r]}</span></button>`).join('');
+  b.innerHTML=`
+    <div style="text-align:center;min-height:36px;"><div class="pet-bubble" id="petBubble" style="visibility:${tempFace?'visible':'hidden'}">${esc(bubbleText)}</div></div>
+    <div class="pet-scene${currentRoom==='sleep'?' sleep':''}" id="petScene"></div>
+    <div class="pet-stage">
+      <div class="pname">${esc(p.name)}</div>
+      <div class="pmood" id="petMoodText">${esc(md.text)} · ${stageName(p.level)} ${SPECIES[p.species]?.name||''}</div>
+    </div>
+    <div class="xp-wrap">
+      <div class="xp-top"><span id="xpTopL">Seviye ${p.level}</span><span id="xpTopR">${Math.floor(p.xp||0)} / ${need} XP</span></div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:${xpPct}%"></div></div>
+    </div>
+    <div class="pet-bars" id="petBars">${barsHTML(c,true)}</div>
+    <div class="room-tabs">${tabs}</div>
+    <div class="pet-act-log" id="petLog"></div>
+    <button class="btn danger" onclick="deletePet()" style="margin-top:18px;">Pet'i Sil</button>`;
+  renderScene(currentRoom);
+  scheduleLoveEnd();
+}
+
+window.hatchPet = async ()=>{
+  const nm=($('petName')?.value.trim())||'Minik';
+  const keys=Object.keys(SPECIES); const sp=keys[Math.floor(Math.random()*keys.length)];
+  await setDoc(petDoc(), { species:sp, name:nm, bornAt:serverTimestamp(), level:1, xp:0, hunger:80, happy:80, energy:80, clean:80, lastTick:serverTimestamp(), lastCare:null, loveUntil:0 });
+  toast(`${SPECIES[sp].name} yumurtadan çıktı!`);
+};
+
+window.care = async function(type){
+  if(!DB.pet) return;
+  const c=decay(DB.pet); let h=c.hunger, hp=c.happy, en=c.energy, cl=c.clean, xp=DB.pet.xp||0, lv=DB.pet.level||1, gain=0;
+  if(type==='feed'){ h=clamp(h+30); gain=8; }
+  if(type==='play'){ hp=clamp(hp+25); en=clamp(en-8); gain=10; }
+  if(type==='love'){ hp=clamp(hp+20); gain=6; }
+  if(type==='sleep'){ en=clamp(en+35); gain=6; }
+  if(type==='bath'){ cl=clamp(cl+35); hp=clamp(hp+8); gain=7; }
+  xp+=gain; let leveled=false;
+  while(xp>=xpForLevel(lv)){ xp-=xpForLevel(lv); lv++; leveled=true; }
+  const prev=DB.pet.lastCare; let loveUntil=DB.pet.loveUntil||0;
+  const prevAt = prev && (prev.at?.toMillis ? prev.at.toMillis() : prev.at);
+  let loveMsg=false;
+  if(prev && prev.idx!==ME && prevAt && (Date.now()-prevAt)<180000){ loveUntil=Date.now()+20000; loveMsg=true; }
+  await updateDoc(petDoc(), { hunger:h, happy:hp, energy:en, clean:cl, xp, level:lv, lastTick:serverTimestamp(), lastCare:{idx:ME, at:serverTimestamp()}, loveUntil });
+  DB.pet={...DB.pet, hunger:h, happy:hp, energy:en, clean:cl, xp, level:lv, loveUntil};
+  tempFace = type==='sleep' ? 'sleepy' : (type==='love' ? 'love' : 'happy');
+  window._lastSay = loveMsg ? 'İkiniz birlikte ilgilendiniz, çok mutlu!' : (leveled ? pick(CARE_LINES[type])+' Büyüdüm, bak!' : pick(CARE_LINES[type]));
+  applyFace(tempFace); lastFace=tempFace;
+  updateBars($('petBars'), decay(DB.pet));
+  updateXP();
+  say(window._lastSay);
+  if(leveled){ renderScene(currentRoom); }
+  clearTimeout(tempFaceT); tempFaceT=setTimeout(()=>{ tempFace=null; const md=mood(DB.pet,decay(DB.pet)); applyFace(md.face); lastFace=md.face; const mt=$('petMoodText'); if(mt) mt.textContent=md.text+' · '+stageName(DB.pet.level)+' '+SPECIES[DB.pet.species].name; }, 1500);
+  const lg=$('petLog'); if(lg) lg.textContent = loveMsg ? 'İkiniz birlikte ilgilendiniz!' : (leveled?'Seviye atladı!':'');
+};
+
+window.deletePet = async function(){
+  if(!DB.pet) return;
+  if(!confirm("Pet'i silmek istediğine emin misin? Bu işlem geri alınamaz.")) return;
+  await deleteDoc(petDoc());
+  toast('Pet silindi');
+};
+
+function renderNotes(){
+  const l=$('noteList');
+  if(!DB.notes.length){ l.innerHTML='<div class="empty">Henüz not yok. İlk tatlı notu sen bırak</div>'; return; }
+  l.innerHTML=DB.notes.slice().reverse().map(n=>`<div class="item"><button class="del" onclick="delNote('${n.id}')">${X_SVG}</button><div class="meta">${esc(n.author)} · ${trDate(n.ts)}</div><div class="txt">${esc(n.text)}</div></div>`).join('');
+}
+window.addNote = async ()=>{ const t=$('noteText').value.trim(); if(!t) return; $('noteText').value='';
+  await addDoc(col('notes'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() }); };
+window.delNote = id => deleteDoc(doc(db,'couples',CODE,'notes',id));
+
+function renderChat(){
+  const w=$('chatWrap');
+  if(!DB.chat.length){ w.innerHTML='<div class="empty">Birbirinize mesaj gönderin</div>'; return; }
+  w.innerHTML=DB.chat.map(m=>`<div class="bubble ${m.authorIdx===ME?'right':'left'}"><div class="who">${esc(m.author)}</div>${esc(m.text)}</div>`).join('');
+  w.scrollTop=w.scrollHeight;
+}
+window.addChat = async ()=>{ const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
+  await addDoc(col('chat'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() }); };
+
+function compress(file, maxW, targetBytes){
+  return new Promise((resolve,reject)=>{
+    const img=new Image(); const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width, h=img.height, q=0.8;
+      if(w>maxW){ h=Math.round(h*maxW/w); w=maxW; }
+      const canvas=document.createElement('canvas');
+      const step=()=>{
+        canvas.width=w; canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        const data=canvas.toDataURL('image/jpeg',q);
+        if(data.length < targetBytes || w<=300){ resolve(data); return; }
+        w=Math.round(w*0.82); h=Math.round(h*0.82); q=Math.max(0.5,q-0.05); step();
+      };
+      step();
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error('okunamadı')); };
+    img.src=url;
+  });
+}
+function renderPhotos(){
+  const g=$('photoGrid');
+  if(!DB.photos.length){ g.innerHTML='<div class="empty" style="grid-column:1/3">Anılarınızı ekleyin</div>'; return; }
+  const arr=DB.photos.slice().reverse();
+  g.innerHTML=arr.map(p=>`<div class="ph"><button class="del">${X_SVG}</button><img src="${p.url}" loading="lazy" alt=""></div>`).join('');
+  g.querySelectorAll('.ph').forEach((ph,i)=>{
+    const src=arr[i].url, id=arr[i].id;
+    ph.addEventListener('click', ()=>openLightbox(src));
+    ph.querySelector('.del').addEventListener('click', (e)=>{ e.stopPropagation(); delPhoto(id); });
+  });
+}
+window.openLightbox = function(src){ $('lbImg').src=src; $('lightbox').classList.remove('hide'); };
+window.closeLightbox = function(){ $('lightbox').classList.add('hide'); $('lbImg').src=''; };
+window.addPhoto = async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  $('photoBtn').disabled=true; $('photoBtn').textContent='Sıkıştırılıyor...';
+  try{ const data = await compress(f, 1100, 950000); $('photoBtn').textContent='Kaydediliyor...'; await addDoc(col('photos'), { url:data, ts:serverTimestamp() }); }
+  catch(err){ toast('Fotoğraf eklenemedi'); console.error(err); }
+  $('photoBtn').disabled=false; $('photoBtn').textContent='Fotoğraf Ekle';
+};
+window.delPhoto = id => deleteDoc(doc(db,'couples',CODE,'photos',id));
+
+window.uploadAvatar = async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{
+    const data = await compress(f, 260, 140000);
+    const field = ME===0 ? 'photo1' : 'photo2';
+    await updateDoc(metaDoc(), { [field]: data });
+    toast('Fotoğrafın güncellendi');
+  }catch(err){ toast('Fotoğraf eklenemedi'); console.error(err); }
+};
+window.removeAvatar = async ()=>{
+  const field = ME===0 ? 'photo1' : 'photo2';
+  await updateDoc(metaDoc(), { [field]: '' });
+  toast('Fotoğraf kaldırıldı');
+};
+
+function renderEvents(){ const l=$('evList');
+  if(!DB.events.length){ l.innerHTML='<div class="empty">Planlanmış etkinlik yok</div>'; return; }
+  l.innerHTML=DB.events.map(e=>`<div class="item"><button class="del" onclick="delEvent('${e.id}')">${X_SVG}</button><div class="meta">${fmtDT(e.date)}</div><div class="txt">${esc(e.title)}</div></div>`).join('');
+}
+window.addEvent = async ()=>{ const t=$('evTitle').value.trim(), d=$('evDate').value; if(!t||!d) return;
+  $('evTitle').value=''; $('evDate').value=''; await addDoc(col('events'), { title:t, date:d, ts:serverTimestamp() }); };
+window.delEvent = id => deleteDoc(doc(db,'couples',CODE,'events',id));
+
+const QUESTIONS=['İlk buluşmamızda ne hissettin?','Benim en sevdiğin özelliğim ne?','Birlikte yapmak istediğin bir hayalin?','Beni en çok ne güldürür?','5 yıl sonra bizi nerede görüyorsun?'];
+function renderQA(){ const w=$('qaWrap');
+  w.innerHTML=QUESTIONS.map((q,qi)=>{ const a=DB.qa[qi]||{};
+    return `<div class="qa-q">${qi+1}. ${q}</div>
+      <div class="qa-pair">
+        <div class="item"><div class="meta">${esc(DB.settings.name1)}</div><div class="txt">${esc(a[0]||'—')}</div></div>
+        <div class="item"><div class="meta">${esc(DB.settings.name2||'Bekliyor...')}</div><div class="txt">${esc(a[1]||'—')}</div></div>
+      </div>
+      <div class="row" style="margin-top:8px;">
+        <input id="qa_${qi}_0" placeholder="${esc(DB.settings.name1)} cevabı" value="${esc(a[0]||'')}" style="margin:0;">
+        <input id="qa_${qi}_1" placeholder="${esc(DB.settings.name2||'Sevgilin')} cevabı" value="${esc(a[1]||'')}" style="margin:0;">
+      </div>
+      <button class="btn ghost" style="margin-top:8px;" onclick="saveQA(${qi})">Kaydet</button>`;
+  }).join('');
+}
+window.saveQA = async qi=>{ const items={...DB.qa, [qi]:{ 0:$(`qa_${qi}_0`).value.trim(), 1:$(`qa_${qi}_1`).value.trim() }};
+  await setDoc(doc(db,'couples',CODE,'meta','qa'), { items }); toast('Kaydedildi'); };
+
+function fillProfile(){
+  const s=DB.settings;
+  $('profEmail').textContent = auth.currentUser?.email || '—';
+  $('profCode').textContent=CODE||'—';
+  $('setMyName').value = names()[ME] || '';
+  const partner = names()[1-ME];
+  $('partnerName').textContent = (partner && partner.trim()) ? partner : 'Henüz katılmadı';
+  $('setMyBday').value = (ME===0 ? s.bday1 : s.bday2) || '';
+  const pB = ME===0 ? s.bday2 : s.bday1;
+  $('partnerBday').textContent = pB ? fmtBday(pB) : 'Henüz girilmedi';
+  $('setStart').value = s.start||'';
+  const myPhoto = ME===0 ? s.photo1 : s.photo2;
+  $('ppPrev').innerHTML = myPhoto ? `<img src="${myPhoto}" alt="">` : PERSON_SVG;
+  applyThemeUI(localStorage.getItem(THEME_KEY)==='dark');
+}
+window.saveSettings = async ()=>{
+  const nameField = ME===0 ? 'name1' : 'name2';
+  const bdayField = ME===0 ? 'bday1' : 'bday2';
+  const newMy = $('setMyName').value.trim() || names()[ME] || 'Ben';
+  await updateDoc(metaDoc(), { [nameField]: newMy, [bdayField]: $('setMyBday').value||'', start: $('setStart').value||'' });
+  toast('Kaydedildi');
+};
+window.deleteAccount = async function(){
+  const user = auth.currentUser;
+  if(!user){ toast('Giriş yapılmamış'); return; }
+  if(!confirm('Hesabını kalıcı olarak silmek istediğine emin misin? Bu işlem geri alınamaz.')) return;
+  const code = CODE;
+  let wipeCouple = false;
+  if(code){
+    try{
+      const infoSnap = await getDoc(doc(db,'couples',code,'meta','info'));
+      if(infoSnap.exists()){
+        const s = infoSnap.data();
+        const partnerUid = (ME===0 ? s.uid2 : s.uid1);
+        if(partnerUid){
+          wipeCouple = confirm('Bu çifte sevgilin de bağlı.\nOnun notları, fotoğrafları, sohbeti ve pet\'i de silinsin mi?\n\nTamam = çift tamamen silinir (sevgilinin verileri de gider).\nİptal = sadece senin hesabın silinir, çift verisi korunur.');
+        } else {
+          wipeCouple = true;
+        }
+      }
+    }catch(e){ console.error(e); }
+  }
+  try{
+    if(code){
+      if(wipeCouple){
+        const subs = ['notes','chat','photos','events'];
+        for(const name of subs){
+          const snap = await getDocs(collection(db,'couples',code,name));
+          const batch = writeBatch(db);
+          snap.docs.forEach(d=> batch.delete(d.ref));
+          await batch.commit();
+        }
+        await deleteDoc(doc(db,'couples',code,'meta','info'));
+        await deleteDoc(doc(db,'couples',code,'meta','pet')).catch(()=>{});
+        await deleteDoc(doc(db,'couples',code,'meta','qa')).catch(()=>{});
+      } else {
+        const f = ME===0
+          ? { name1:'—', photo1:'', bday1:'', uid1:'' }
+          : { name2:'', photo2:'', bday2:'', uid2:'' };
+        await updateDoc(doc(db,'couples',code,'meta','info'), f);
+      }
+    }
+    await deleteDoc(userDoc(user.uid)).catch(()=>{});
+    unsubs.forEach(u=>u()); unsubs=[];
+    await deleteUser(user);
+    toast('Hesabın silindi');
+  }catch(e){
+    console.error(e);
+    if(e && e.code==='auth/requires-recent-login'){ toast('Güvenlik için çıkış yapıp tekrar giriş yap, sonra dene'); }
+    else { toast('Hesap silinemedi'); }
+  }
+};
+
+setInterval(()=>{
+  if(current==='pet' && DB.pet && !tempFace){ tickPet(); }
+  else if(current==='home' && DB.pet){ tickMini(); }
+  if(DB.pet) petNotify(decay(DB.pet));
+}, 4000);
+</script>
+
+<script>
+  if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
