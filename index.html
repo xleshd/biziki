@@ -634,12 +634,7 @@ function startSync(){
   unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); } }));
   unsubs.push(onSnapshot(petDoc(), s=>{ DB.pet = s.exists()? s.data() : null; if(current==='pet') renderPet(); if(current==='home') renderPetMini(); }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
-    unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{
-    DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    if(current==='chat') renderChat();
-    if(chatInit){ snap.docChanges().forEach(ch=>{ if(ch.type==='added'){ const m=ch.doc.data(); if(m.authorIdx!==ME){ pushNotif(m.author||'Yeni mesaj', m.text||''); } } }); }
-    else { chatInit=true; }
-  }));
+    unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='chat') renderChat(); }));
   unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
   unsubs.push(onSnapshot(query(col('events'), orderBy('date','asc')), snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='calendar') renderEvents(); }));
   unsubs.push(onSnapshot(doc(db,'couples',CODE,'meta','qa'), s=>{ DB.qa = s.exists()? (s.data().items||{}) : {}; if(current==='qa') renderQA(); }));
@@ -1105,7 +1100,8 @@ function renderChat(){
   w.innerHTML=DB.chat.map(m=>`<div class="bubble ${m.authorIdx===ME?'right':'left'}"><div class="who">${esc(m.author)}</div>${esc(m.text)}</div>`).join('');
   w.scrollTop=w.scrollHeight;
 }
-window.addChat = async ()=>{ const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
+let _chatLock=0;
+window.addChat = async ()=>{ const now=Date.now(); if(now-_chatLock<1200) return; _chatLock=now; const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
   await addDoc(col('chat'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() });
   notifyOthers(myName(), t);
 };
