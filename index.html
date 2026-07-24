@@ -244,7 +244,8 @@
 { "imports": {
   "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
   "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
-  "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+  "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
 }}
 </script>
 </head>
@@ -425,6 +426,8 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, deleteUser } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, getDocs, writeBatch } from 'firebase/firestore';
 
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
 const firebaseConfig = {
   apiKey: "AIzaSyDwWG1WGCSi-NS3rO-Djv2ijkSYqDs_QXE",
   authDomain: "biziki-b7739.firebaseapp.com",
@@ -450,6 +453,7 @@ let tempFace = null, tempFaceT = null;
 let lastFace = null;
 let currentRoom = 'home';
 let chatInit=false, couponInit=false;
+const VAPID_KEY = "BKKc-sm9KQRQutkkfmF3_283o2Cr-GeoN9v_YzgbmP6YG4ERIWPcmUTGh4DgTo_ai6F-R-kq2nONCHFz8sCW3j8";
 const NOTIF_ICON='icon.png';
 
 const $ = id => document.getElementById(id);
@@ -575,7 +579,7 @@ onAuthStateChanged(auth, async user=>{
   UID = user.uid;
   try{
     const snap = await getDoc(userDoc(UID));
-    if(snap.exists() && snap.data().coupleCode){ CODE = snap.data().coupleCode; ME = snap.data().slot || 0; enterApp(); }
+        if(snap.exists() && snap.data().coupleCode){ CODE = snap.data().coupleCode; ME = snap.data().slot || 0; enterApp(); registerPush(); }
     else { showMatch(); }
   }catch(e){ console.error(e); showMatch(); }
 });
@@ -619,6 +623,7 @@ window.joinCouple = async ()=>{
 window.logout = async ()=>{
   if(confirm('Çıkış yapılsın mı? Hesabın ve verilerin bulutta güvende kalır, tekrar girersin.')){
     unsubs.forEach(u=>u()); unsubs=[];
+       if(UID){ await setDoc(userDoc(UID), { fcmToken:'' }, { merge:true }).catch(()=>{}); }
     try{ await signOut(auth); }catch(e){}
   }
 };
@@ -682,6 +687,23 @@ function petNotify(c){
   check('clean',  c.clean<25,  name+' kirlendi', 'Banyo zamanı geldi');
   check('happy',  c.happy<25,  name+' mutsuz', 'Biraz ilgi ister misin');
 }
+async function registerPush(){
+  if(!UID) return;
+  if(!('Notification' in window)) return;
+  if(Notification.permission==='denied') return;
+  if(Notification.permission!=='granted'){ const p=await Notification.requestPermission(); if(p!=='granted') return; }
+  if(!('serviceWorker' in navigator)) return;
+  try{
+    const reg = await navigator.serviceWorker.ready;
+    const messaging = getMessaging(app);
+    const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if(token){ await setDoc(userDoc(UID), { fcmToken: token }, { merge:true }); }
+  }catch(e){ console.warn('push register', e); }
+}
+try{
+  const _messaging = getMessaging(app);
+  onMessage(_messaging, payload=>{ const n=payload.notification||{}; pushNotif(n.title||'Bizİki', n.body||''); });
+}catch(e){ console.warn('onMessage', e); }
 
 function renderHome(){
   const s=DB.settings;
