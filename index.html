@@ -691,7 +691,240 @@ function notifyOthers(title, body){
     }).catch(()=>{});
   }catch(e){}
 }
+/* ===== AVATAR / CHIBI KATMANI v2 ===== */
+function avatarStyleOnce(){
+  if(document.getElementById('av-css')) return;
+  const s=document.createElement('style'); s.id='av-css';
+  s.textContent=`
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+  :root{ --av-c1:#ff8a73; --av-c2:#f6a8b8; --av-c3:#c8b6e8; --av-cream:#fff6ec; }
+  #av-fab{ position:fixed; right:16px; bottom:16px; width:60px; height:60px; border-radius:50%;
+    background:transparent; cursor:pointer; z-index:9000; display:grid; place-items:center; border:none;
+    padding:0; -webkit-tap-highlight-color:transparent; animation:av-fabfloat 3.6s ease-in-out infinite; }
+  #av-fab::before{ content:""; position:absolute; inset:0; border-radius:50%;
+    background:conic-gradient(from 0deg,var(--av-c1),var(--av-c2),var(--av-c3),var(--av-c1));
+    box-shadow:0 10px 26px rgba(214,108,124,.42); animation:av-spin 9s linear infinite; }
+  #av-fab::after{ content:""; position:absolute; inset:-3px; border-radius:50%;
+    border:2px solid rgba(246,168,184,.6); animation:av-pulse 2.6s ease-out infinite; pointer-events:none; }
+  #av-fab .av-inner{ position:relative; width:calc(100% - 6px); height:calc(100% - 6px); border-radius:50%;
+    background:var(--av-cream); display:grid; place-items:center; overflow:hidden;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.08); z-index:1; transition:transform .18s cubic-bezier(.34,1.56,.64,1); }
+  #av-fab:active .av-inner{ transform:scale(.86); }
+  #av-fab img{ width:100%; height:100%; object-fit:cover; object-position:top center; }
+  #av-fab svg{ width:26px; height:26px; }
+  @keyframes av-spin{ to{ transform:rotate(360deg); } }
+  @keyframes av-fabfloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+  @keyframes av-pulse{ 0%{transform:scale(.92);opacity:.7} 70%{transform:scale(1.4);opacity:0} 100%{opacity:0} }
+  #av-fab.av-pop{ animation:av-fabfloat 3.6s ease-in-out infinite, av-pop .55s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes av-pop{ 0%{ } 35%{ transform:scale(1.25) rotate(-6deg); } 70%{ transform:scale(.94) rotate(3deg); } 100%{ transform:scale(1) rotate(0); } }
+
+  #av-ov{ position:fixed; inset:0; z-index:9100; display:none; }
+  #av-ov.open{ display:block; }
+  #av-ov .av-back{ position:absolute; inset:0; background:rgba(40,24,38,.42);
+    backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); opacity:0; transition:opacity .25s ease; }
+  #av-ov.open .av-back{ opacity:1; }
+  #av-ov .av-sheet{ position:absolute; left:0; right:0; bottom:0; border-radius:28px 28px 0 0;
+    background:linear-gradient(180deg,#fff 0%, #fff7f2 100%);
+    box-shadow:0 -18px 50px rgba(120,60,90,.28); padding:22px 20px calc(26px + env(safe-area-inset-bottom));
+    transform:translateY(100%); transition:transform .36s cubic-bezier(.22,1,.36,1); max-height:88vh; overflow:auto; }
+  #av-ov.open .av-sheet{ transform:translateY(0); }
+  #av-ov .av-sheet::before{ content:""; position:absolute; top:-40px; left:50%; transform:translateX(-50%);
+    width:240px; height:160px; pointer-events:none;
+    background:radial-gradient(closest-side, rgba(246,168,184,.28), rgba(200,182,232,.12) 60%, transparent 75%);
+    filter:blur(2px); }
+  #av-ov .av-grab{ position:relative; width:42px; height:5px; border-radius:3px; background:rgba(180,140,160,.35); margin:0 auto 14px; }
+  #av-ov .av-h{ position:relative; margin:0 0 2px; font-family:'Fredoka',system-ui,sans-serif; font-size:24px; font-weight:700;
+    letter-spacing:-.4px; color:#3a2530; text-align:center; }
+  #av-ov .av-sub{ position:relative; margin:0 0 18px; font-family:'Nunito',system-ui,sans-serif; font-size:12.5px; font-weight:600;
+    color:#9a7d88; text-align:center; letter-spacing:.2px; }
+  #av-ov .av-stage{ position:relative; display:flex; align-items:flex-end; justify-content:center; gap:10px; margin:4px 0 22px; }
+  #av-ov .av-slot{ position:relative; display:flex; flex-direction:column; align-items:center; gap:9px; width:44%; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; }
+  #av-ov .av-ring{ position:relative; width:112px; height:112px; border-radius:50%; padding:4px;
+    background:conic-gradient(from 120deg,var(--av-c1),var(--av-c2),var(--av-c3),var(--av-c1));
+    box-shadow:0 12px 26px rgba(214,108,124,.3); transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s ease;
+    animation:av-float 3.4s ease-in-out infinite; }
+  #av-ov .av-slot:nth-child(3) .av-ring{ animation-delay:-1.7s; }
+  #av-ov .av-slot:hover .av-ring{ transform:translateY(-4px) scale(1.04); box-shadow:0 18px 34px rgba(214,108,124,.42); }
+  #av-ov .av-face{ width:100%; height:100%; border-radius:50%; background:var(--av-cream); overflow:hidden;
+    display:grid; place-items:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.08); animation:av-sway 4.4s ease-in-out infinite; }
+  #av-ov .av-slot:nth-child(3) .av-face{ animation-delay:-2.2s; }
+  #av-ov .av-ring img{ width:100%; height:100%; object-fit:contain; }
+  #av-ov .av-ring.empty{ background:repeating-linear-gradient(45deg,#f3dfe4,#f3dfe4 8px,#fbeef0 8px,#fbeef0 16px); animation:none; }
+  #av-ov .av-ring.empty .av-face{ background:transparent; box-shadow:none; animation:none; }
+  #av-ov .av-empty-txt{ font-family:'Nunito',system-ui,sans-serif; font-size:11px; color:#b597a1; text-align:center; padding:0 8px; }
+  #av-ov .av-name{ font-family:'Nunito',system-ui,sans-serif; font-size:13.5px; font-weight:800; color:#5a3d49; max-width:124px;
+    text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #av-ov .av-heart{ flex:0 0 auto; align-self:center; margin-bottom:30px; animation:av-beat 1.8s ease-in-out infinite; }
+  #av-ov .av-heart svg{ width:28px; height:28px; filter:drop-shadow(0 3px 6px rgba(214,108,124,.4)); }
+  @keyframes av-float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-7px); } }
+  @keyframes av-sway{ 0%,100%{ transform:rotate(-2.2deg); } 50%{ transform:rotate(2.2deg); } }
+  @keyframes av-beat{ 0%,100%{transform:scale(1)} 18%{transform:scale(1.2)} 36%{transform:scale(1)} 54%{transform:scale(1.12)} }
+  #av-ov .av-ring.av-bounce{ animation:av-bounce .6s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes av-bounce{ 0%{transform:translateY(0) scale(1)} 25%{transform:translateY(-16px) scale(1.08,.94)} 50%{transform:translateY(0) scale(.96,1.06)} 75%{transform:translateY(-6px) scale(1.02)} 100%{transform:translateY(0) scale(1)} }
+  #av-ov .av-spark{ position:absolute; left:50%; top:30%; width:14px; height:14px; pointer-events:none; z-index:5;
+    background:no-repeat center/contain url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23e8607a'/></svg>");
+    animation:av-spark .9s ease-out forwards; }
+  @keyframes av-spark{ 0%{opacity:0; transform:translate(-50%,0) scale(.4)} 20%{opacity:1} 100%{opacity:0; transform:translate(var(--dx),-58px) scale(1.1) rotate(var(--rot))} }
+  #av-ov .av-actions{ position:relative; display:flex; flex-direction:column; gap:10px; }
+  #av-ov .av-btn{ border:none; cursor:pointer; border-radius:16px; padding:14px 16px; font-family:'Nunito',system-ui,sans-serif;
+    font-size:14.5px; font-weight:800; letter-spacing:.2px; color:#fff; width:100%;
+    background:linear-gradient(100deg,var(--av-c1),var(--av-c2));
+    box-shadow:0 8px 20px rgba(214,108,124,.34); transition:transform .14s ease, box-shadow .14s ease, filter .14s ease; }
+  #av-ov .av-btn:active{ transform:scale(.97); }
+  #av-ov .av-btn:hover{ filter:brightness(1.04); box-shadow:0 10px 24px rgba(214,108,124,.45); }
+  #av-ov .av-btn.ghost{ background:#fff; color:#b06172; box-shadow:inset 0 0 0 1.5px rgba(214,108,124,.35); }
+  #av-ov .av-btn[disabled]{ opacity:.6; cursor:default; }
+  #av-ov .av-close{ position:absolute; top:14px; right:16px; width:34px; height:34px; border-radius:50%; z-index:2;
+    border:none; background:rgba(180,140,160,.14); color:#8a6b76; font-size:18px; cursor:pointer; line-height:1;
+    display:grid; place-items:center; transition:background .15s ease, transform .25s ease; }
+  #av-ov .av-close:hover{ background:rgba(180,140,160,.24); transform:rotate(90deg); }
+  `;
+  document.head.appendChild(s);
+}
+const AV_HEART='<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z" fill="#e8607a"/></svg>';
+const AV_HEART_LINE='<svg viewBox="0 0 24 24" fill="none"><path d="M12 20s-6.8-4.2-9-8.4C1.6 8.8 3 5.6 6 5.6c1.8 0 3 1 3.8 2.1C10.6 6.6 11.8 5.6 13.6 5.6c3 0 4.4 3.2 3 6-2.2 4.2-4.6 8.4-4.6 8.4z" stroke="#d6788c" stroke-width="1.6" fill="none"/></svg>';
+function avFaceHTML(dataURL){ return dataURL ? `<img src="${dataURL}" alt="chibi">` : AV_HEART_LINE; }
+
+let _avFabUnsub=null, _avMyData=null;
+function setupAvatarFab(){
+  avatarStyleOnce();
+  if(document.getElementById('av-fab')) return;
+  const fab=document.createElement('button'); fab.id='av-fab'; fab.setAttribute('aria-label','Chibi avatarlar');
+  fab.innerHTML=`<span class="av-inner">${AV_HEART_LINE}</span>`;
+  fab.addEventListener('click', openAvatar);
+  document.body.appendChild(fab);
+  const ov=document.createElement('div'); ov.id='av-ov';
+  ov.innerHTML=`<div class="av-back"></div><div class="av-sheet">
+      <button class="av-close" aria-label="Kapat">&times;</button>
+      <div class="av-grab"></div>
+      <h2 class="av-h">Chibi'lerimiz</h2>
+      <p class="av-sub">Kendi cizimini yukle, sevgilinin ekranda canlansin</p>
+      <div class="av-stage">
+        <div class="av-slot" id="av-slot-me"><div class="av-ring empty" id="av-me-ring"><div class="av-face">${AV_HEART_LINE}</div></div><div class="av-name" id="av-me-name">Sen</div></div>
+        <div class="av-heart">${AV_HEART}</div>
+        <div class="av-slot" id="av-slot-you"><div class="av-ring empty" id="av-you-ring"><div class="av-face">${AV_HEART_LINE}</div></div><div class="av-name" id="av-you-name">Sevgilin</div></div>
+      </div>
+      <div class="av-actions">
+        <button class="av-btn" id="av-upload">Chibi'ni yukle / degistir</button>
+        <button class="av-btn ghost" id="av-remove" style="display:none">Chibi'ni kaldir</button>
+      </div>
+      <input type="file" id="av-file" accept="image/*" style="display:none">
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelector('.av-back').addEventListener('click', closeAvatar);
+  ov.querySelector('.av-close').addEventListener('click', closeAvatar);
+  ov.querySelector('#av-upload').addEventListener('click', ()=> ov.querySelector('#av-file').click());
+  ov.querySelector('#av-file').addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) uploadAvatar(f); e.target.value=''; });
+  ov.querySelector('#av-remove').addEventListener('click', removeAvatar);
+  ov.querySelector('#av-slot-me').addEventListener('click', ()=>{ joy(document.getElementById('av-me-ring')); });
+  ov.querySelector('#av-slot-you').addEventListener('click', ()=>{ joy(document.getElementById('av-you-ring')); });
+  if(!_avFabUnsub){
+    try{ _avFabUnsub=onSnapshot(userDoc(UID), snap=>{ const d=snap.exists()?snap.data():{}; _avMyData=d.avatar||null; paintFab(); if(ov.classList.contains('open')) paintMe(d); }); }catch(e){}
+  }
+}
+function joy(ring){
+  if(!ring) return;
+  ring.classList.remove('av-bounce'); void ring.offsetWidth; ring.classList.add('av-bounce');
+  setTimeout(()=>ring.classList.remove('av-bounce'), 650);
+  for(let i=0;i<5;i++){ const sp=document.createElement('span'); sp.className='av-spark';
+    sp.style.setProperty('--dx', (Math.random()*70-35).toFixed(0)+'px');
+    sp.style.setProperty('--rot', (Math.random()*60-30).toFixed(0)+'deg');
+    sp.style.animationDelay=(i*0.06)+'s'; ring.appendChild(sp); setTimeout(()=>sp.remove(), 1100); }
+}
+function paintFab(){
+  const fab=document.getElementById('av-fab'); if(!fab) return;
+  fab.querySelector('.av-inner').innerHTML = _avMyData ? `<img src="${_avMyData}" alt="">` : AV_HEART_LINE;
+}
+function paintMe(d){
+  const ring=document.getElementById('av-me-ring'), nm=document.getElementById('av-me-name');
+  if(!ring) return;
+  const a=d.avatar||null;
+  ring.classList.toggle('empty', !a);
+  ring.querySelector('.av-face').innerHTML = avFaceHTML(a);
+  if(nm) nm.textContent = (typeof myName==='function' && myName()) || 'Sen';
+  const rm=document.getElementById('av-remove'); if(rm) rm.style.display = a ? '' : 'none';
+}
+function paintYou(d, name){
+  const ring=document.getElementById('av-you-ring'), nm=document.getElementById('av-you-name');
+  if(!ring) return;
+  const a=d && d.avatar || null;
+  ring.classList.toggle('empty', !a);
+  ring.querySelector('.av-face').innerHTML = avFaceHTML(a);
+  if(nm) nm.textContent = name || 'Sevgilin';
+}
+let _avOvUnsubs=[];
+function openAvatar(){
+  const ov=document.getElementById('av-ov'); if(!ov) return;
+  ov.classList.add('open');
+  _avOvUnsubs.forEach(u=>{ try{u();}catch(e){} }); _avOvUnsubs=[];
+  try{ _avOvUnsubs.push(onSnapshot(userDoc(UID), snap=>{ const d=snap.exists()?snap.data():{}; paintMe(d); })); }catch(e){}
+  try{
+    _avOvUnsubs.push(onSnapshot(doc(col('couples'), CODE, 'meta', 'info'), snap=>{
+      if(!snap.exists()) return; const s=snap.data();
+      const otherUid = (s.uid1===UID)? s.uid2 : s.uid1;
+      const otherName = (s.uid1===UID)? (s.name2||s.slot2Name||'Sevgilin') : (s.name1||s.slot1Name||'Sevgilin');
+      if(!otherUid){ paintYou(null, otherName); return; }
+      _avOvUnsubs.push(onSnapshot(userDoc(otherUid), u=>{ paintYou(u.exists()?u.data():null, otherName); }));
+    }));
+  }catch(e){}
+}
+function closeAvatar(){
+  const ov=document.getElementById('av-ov'); if(ov) ov.classList.remove('open');
+  _avOvUnsubs.forEach(u=>{ try{u();}catch(e){} }); _avOvUnsubs=[];
+}
+function processImage(file, cb){
+  const r=new FileReader();
+  r.onload=()=>{ const img=new Image();
+    img.onload=()=>{
+      try{
+        const MAX=256;
+        const sc=Math.min(1, MAX/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*sc)), h=Math.max(1,Math.round(img.height*sc));
+        const a=document.createElement('canvas'); a.width=w; a.height=h;
+        const ax=a.getContext('2d'); ax.drawImage(img,0,0,w,h);
+        const id=ax.getImageData(0,0,w,h); const d=id.data;
+        const P=(x,y)=>(y*w+x)*4;
+        const isWhite=(i)=>{ const R=d[i],G=d[i+1],B=d[i+2]; const mx=Math.max(R,G,B),mn=Math.min(R,G,B); return mx>=232 && (mx-mn)<10 && (R-mn)<8; };
+        const seen=new Uint8Array(w*h); const stack=[];
+        for(let x=0;x<w;x++){ stack.push(x,0); stack.push(x,h-1); }
+        for(let y=0;y<h;y++){ stack.push(0,y); stack.push(w-1,y); }
+        while(stack.length){ const y=stack.pop(), x=stack.pop(); if(x<0||y<0||x>=w||y>=h) continue; const p=x+y*w; if(seen[p]) continue; if(!isWhite(p*4)) continue; seen[p]=1; d[p*4+3]=0; stack.push(x+1,y); stack.push(x-1,y); stack.push(x,y+1); stack.push(x,y-1); }
+        ax.putImageData(id,0,0);
+        let minX=w,minY=h,maxX=0,maxY=0,any=false;
+        for(let y=0;y<h;y++) for(let x=0;x<w;x++){ if(d[(x+y*w)*4+3]>12){ any=true; if(x<minX)minX=x; if(x>maxX)maxX=x; if(y<minY)minY=y; if(y>maxY)maxY=y; } }
+        if(!any){ cb(a.toDataURL('image/png')); return; }
+        const bw=maxX-minX+1, bh=maxY-minY+1, pad=Math.round(Math.max(bw,bh)*0.05);
+        const side=Math.max(bw,bh)+pad*2;
+        const b=document.createElement('canvas'); b.width=side; b.height=side;
+        b.getContext('2d').drawImage(a, minX, minY, bw, bh, Math.round((side-bw)/2), Math.round((side-bh)/2), bw, bh);
+        const c=document.createElement('canvas'); c.width=MAX; c.height=MAX;
+        c.getContext('2d').drawImage(b,0,0,side,side,0,0,MAX,MAX);
+        cb(c.toDataURL('image/png'));
+      }catch(e){
+        const sc2=Math.min(1,256/Math.max(img.width,img.height)); const w2=Math.round(img.width*sc2),h2=Math.round(img.height*sc2);
+        const f=document.createElement('canvas'); f.width=w2; f.height=h2; f.getContext('2d').drawImage(img,0,0,w2,h2); cb(f.toDataURL('image/png'));
+      }
+    };
+    img.src=r.result; };
+  r.readAsDataURL(file);
+}
+async function uploadAvatar(file){
+  const btn=document.getElementById('av-upload'); if(btn){ btn.disabled=true; btn.textContent='Hazirlaniyor...'; }
+  processImage(file, async (dataURL)=>{
+    try{ await setDoc(userDoc(UID), { avatar:dataURL }, { merge:true });
+      if(typeof toast==='function') toast('Chibi\'n kaydedildi');
+      const fab=document.getElementById('av-fab'); if(fab){ fab.classList.remove('av-pop'); void fab.offsetWidth; fab.classList.add('av-pop'); }
+    }catch(e){ if(typeof toast==='function') toast('Kaydedilemedi'); }
+    if(btn){ btn.disabled=false; btn.textContent='Chibi\'ni yukle / degistir'; }
+  });
+}
+async function removeAvatar(){
+  try{ await setDoc(userDoc(UID), { avatar:'' }, { merge:true }); if(typeof toast==='function') toast('Kaldirildi'); }catch(e){}
+}
+/* ===== /AVATAR v2 ===== */
 async function registerPush(){
+  setupAvatarFab();
   if(!UID) return;
   if(!('Notification' in window)) return;
   if(Notification.permission==='denied') return;
