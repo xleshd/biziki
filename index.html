@@ -684,7 +684,7 @@ function petNotify(c){
 }
 function notifyOthers(title, body){
   try{
-    fetch('/.netlify/functions/sendpush', {
+    fetch('https://biziki-push.biziki.workers.dev/', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ title, body, excludeUid: UID })
