@@ -864,14 +864,16 @@ function setupAvatarFab(){
     });
     return best;
   }
-  function injectChibi(bar){
+    function injectChibi(bar){
     if(!bar||bar.querySelector('[data-av-chibi]')) return;
-    const cs=getComputedStyle(bar);
-    if(cs.display==='grid'){
-      const gtc=cs.gridTemplateColumns||''; const rep=gtc.match(/repeat\(\s*(\d+)/i);
-      if(rep){ bar.style.gridTemplateColumns='repeat('+(parseInt(rep[1],10)+1)+', 1fr)'; }
-      else { const cols=gtc.trim().split(/\s+/).filter(Boolean); if(cols.length>=3) bar.style.gridTemplateColumns=cols.map(()=>'1fr').join(' ')+' 1fr'; }
-    }
+    const btn=document.createElement('button');
+    btn.setAttribute('data-av-chibi','1'); btn.setAttribute('aria-label','Chibi sahnesi'); btn.className='av-chibi-tab';
+    btn.innerHTML='<span class="av-chibi-ico">'+CHIBI_FACE+'</span>';
+    btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openScene();});
+    bar.appendChild(btn);
+    bar.style.display='flex'; bar.style.alignItems='stretch';
+    [...bar.children].forEach(k=>{ k.style.flex='1 1 0'; k.style.minWidth='0'; k.style.width='auto'; });
+  }
     const btn=document.createElement('button');
     btn.setAttribute('data-av-chibi','1'); btn.setAttribute('aria-label','Chibi sahnesi'); btn.className='av-chibi-tab';
     if(cs.display==='flex') btn.style.flex='1 1 0';
