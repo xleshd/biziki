@@ -882,20 +882,24 @@ function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(
 function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); h.style.setProperty('--dx',(Math.random()*90-45).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1400); } }
 function playWaveVideo(w){
   const fig=figOf(w); if(!fig) return;
-  let vid=fig.querySelector('video.av-vid');
-  if(!vid){
-    vid=document.createElement('video'); vid.className='av-vid'; vid.src='chibi-wave.mp4'; vid.muted=true; vid.playsInline=true; vid.preload='auto';
-    vid.setAttribute('webkit-playsinline',''); vid.setAttribute('playsinline','');
-    vid.addEventListener('ended', ()=>{ const posesEl=fig.querySelector('.av-poses'); if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); crossfade(posesEl,'open'); } vid.style.opacity='0'; });
-    vid.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi — repo kokune yukledin mi?'); } });
-    fig.appendChild(vid);
-  }
   const posesEl=posesOf(w);
+  const fallback=()=>{
+    const v2=fig.querySelector('video.av-vid'); if(v2){ v2.style.opacity='0'; try{ v2.pause(); }catch(e){} }
+    if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); showPose(w,'wave',1100,'waveb',1120); }
+  };
+  const vid=fig.querySelector('video.av-vid');
+  if(!vid){ fallback(); return; }
+  if(!vid.dataset.fb){ vid.dataset.fb='1'; vid.addEventListener('error', fallback); }
+  if(vid.networkState===3 || vid.error){ fallback(); return; }
   if(posesEl) posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity='0'; });
   vid.style.opacity='1';
   try{ vid.currentTime=0; }catch(e){}
+  let started=false;
+  const onPlay=()=>{ started=true; vid.removeEventListener('playing', onPlay); };
+  vid.addEventListener('playing', onPlay);
   const p=vid.play();
-  if(p&&p.catch) p.catch(()=>{ if(!window._avVidPlayErr){ window._avVidPlayErr=true; if(typeof toast==='function') toast('Video oynatilamadi'); } });
+  if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started) fallback(); }, 450); }); p.catch(()=>{ fallback(); }); }
+  setTimeout(()=>{ if(!started) fallback(); }, 1300);
 }
 function showPose(who, key, holdMs, bodyCls, bodyMs){
   const posesEl=posesOf(who), fig=figOf(who); if(!posesEl) return;
