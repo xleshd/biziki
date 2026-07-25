@@ -632,7 +632,14 @@ function startSync(){
   unsubs.forEach(u=>u()); unsubs=[];
   $('syncDot').classList.add('on');
   unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); } }));
-  unsubs.push(onSnapshot(petDoc(), s=>{ DB.pet = s.exists()? s.data() : null; if(current==='pet') renderPet(); if(current==='home') renderPetMini(); }));
+    unsubs.push(onSnapshot(petDoc(), s=>{
+    const raw = s.exists()? s.data() : null;
+    const fixed = sanitizePet(DB.pet, raw);
+    const missing = !raw || !raw.species || !raw.name || raw.level==null || raw.xp==null || raw.hunger==null || raw.happy==null || raw.energy==null || raw.clean==null;
+    DB.pet = fixed;
+    if(missing && s.exists()){ try{ updateDoc(petDoc(), { species:fixed.species, name:fixed.name, level:fixed.level, xp:fixed.xp, hunger:fixed.hunger, happy:fixed.happy, energy:fixed.energy, clean:fixed.clean }); }catch(e){} }
+    if(current==='pet') renderPet(); if(current==='home') renderPetMini();
+  }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
     unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='chat') renderChat(); }));
   unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
@@ -1065,6 +1072,17 @@ function stageName(lv){ if(lv<=2)return 'bebek'; if(lv<=4)return 'çocuk'; retur
 function stageSize(lv){ if(lv<=2)return 116; if(lv<=4)return 132; return 150; }
 function xpForLevel(l){ return l*60; }
 function tickMs(pet){ const t=pet.lastTick; if(!t) return Date.now(); if(typeof t==='number') return t; if(t.toMillis) return t.toMillis(); if(t.seconds!=null) return t.seconds*1000; return Date.now(); }
+function sanitizePet(prev, raw){
+  const base = (raw && typeof raw==='object') ? raw : {};
+  const hasAny = !!(base.species || base.name || base.level!=null || base.hunger!=null || base.xp!=null);
+  const src = hasAny ? base : (prev && typeof prev==='object' ? prev : base);
+  const sp = (src.species==='dog'||src.species==='rabbit'||src.species==='cat') ? src.species : ((prev&&prev.species)||'cat');
+  const lv = Number.isFinite(Number(src.level)) && Number(src.level)>=1 ? Math.floor(Number(src.level)) : ((prev&&Number(prev.level))||1);
+  const xp = Number.isFinite(Number(src.xp)) && Number(src.xp)>=0 ? Math.floor(Number(src.xp)) : ((prev&&Number(prev.xp))||0);
+  const nm = (typeof src.name==='string' && src.name.trim()) ? src.name.trim() : ((prev&&prev.name)||'Minik');
+  const bar=(k)=>{ const v=Number(src[k]); return Number.isFinite(v)? Math.max(0,Math.min(100,v)) : (prev&&Number.isFinite(Number(prev[k]))? Number(prev[k]) : 80); };
+  return Object.assign({}, src, { species:sp, name:nm, level:lv, xp:xp, hunger:bar('hunger'), happy:bar('happy'), energy:bar('energy'), clean:bar('clean') });
+}
 function decay(pet){
   const hours=Math.max(0,(Date.now()-tickMs(pet))/3600000);
   return {
