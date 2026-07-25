@@ -1270,6 +1270,16 @@ function renderPet(){
     b.innerHTML=`<div style="text-align:center;"><div class="egg-art">${eggSVG(150)}</div><p style="margin:16px 0 6px;font-weight:800;font-size:16px;">Yumurtanız çatlamak üzere!</p><label>Pet'inize bir isim verin</label><input id="petName" placeholder="örn. Mırmır" /><button class="btn" onclick="hatchPet()">Yumurtayı Çatlat</button><p style="font-size:11px;color:var(--soluk);margin-top:12px;">Tür sürpriz olsun (kedi, köpek veya tavşan)</p></div>`;
     return;
   }
+    if(DB.pet && (!DB.pet.species || !DB.pet.name || DB.pet.level==null)){
+    const _sp = DB.pet.species || 'cat';
+    const _nm = (DB.pet.name && String(DB.pet.name).trim()) || 'Minik';
+    const _lv = Number(DB.pet.level) || 1;
+    const _xp = Number(DB.pet.xp) || 0;
+    DB.pet = Object.assign({}, DB.pet, { species:_sp, name:_nm, level:_lv, xp:_xp,
+      hunger: DB.pet.hunger!=null?DB.pet.hunger:80, happy: DB.pet.happy!=null?DB.pet.happy:80,
+      energy: DB.pet.energy!=null?DB.pet.energy:80, clean: DB.pet.clean!=null?DB.pet.clean:80 });
+    try{ updateDoc(petDoc(), { species:_sp, name:_nm, level:_lv, xp:_xp }); }catch(e){}
+  }
   const p=DB.pet, c=decay(p), md=mood(p,c), face=tempFace||md.face;
   const need=xpForLevel(p.level), xpPct=Math.min(100,(p.xp||0)/need*100);
   const bubbleText = tempFace ? (window._lastSay||md.text) : md.text;
@@ -1289,7 +1299,9 @@ function renderPet(){
     <div class="room-tabs">${tabs}</div>
     <div class="pet-act-log" id="petLog"></div>
     <button class="btn danger" onclick="deletePet()" style="margin-top:18px;">Pet'i Sil</button>`;
-  renderScene(currentRoom);
+    currentRoom = currentRoom || 'home';
+  try{ renderScene(currentRoom); }catch(e){ console.error('renderScene hata:', e); }
+  const _ps=$('petScene'); if(_ps && !_ps.querySelector('.pet-mover') && !_ps.querySelector('.scene-home')){ try{ renderScene('home'); }catch(e){} }
   scheduleLoveEnd();
 }
 
