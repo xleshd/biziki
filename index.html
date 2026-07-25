@@ -635,9 +635,9 @@ function startSync(){
     unsubs.push(onSnapshot(petDoc(), s=>{
     const raw = s.exists()? s.data() : null;
     const fixed = sanitizePet(DB.pet, raw);
-    const missing = !raw || !raw.species || !raw.name || raw.level==null || raw.xp==null || raw.hunger==null || raw.happy==null || raw.energy==null || raw.clean==null;
+        // (koruma kaldırıldı — artık veri ezilmiyor)
     DB.pet = fixed;
-    if(missing && s.exists()){ try{ updateDoc(petDoc(), { species:fixed.species, name:fixed.name, level:fixed.level, xp:fixed.xp, hunger:fixed.hunger, happy:fixed.happy, energy:fixed.energy, clean:fixed.clean }); }catch(e){} }
+    
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
