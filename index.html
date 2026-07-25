@@ -690,48 +690,45 @@ function notifyOthers(title, body){
       body: JSON.stringify({ title, body, excludeUid: UID })
     }).catch(()=>{});
   }catch(e){}
-}
-/* ===== CHIBI SAHNESI v7 (4-poz crossfade + nefes + otonom kirpma + multiply) ===== */
+/* ===== CHIBI SAHNESI v8 (referans mizanpaj + gercek-seffaf PNG + hap dock + ping) ===== */
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
   const s=document.createElement('style'); s.id='av-css';
   s.textContent=`
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
-  :root{ --av-c1:#ff8a73; --av-c2:#f6a8b8; --av-c3:#c8b6e8; --av-cream:#fff6ec; }
 
   #av-scene{ position:fixed; inset:0; z-index:9200; display:none; overflow:hidden; font-family:'Nunito',system-ui,sans-serif; }
   #av-scene.open{ display:block; }
-  #av-scene .av-sky{ position:absolute; inset:0; background:linear-gradient(180deg,#fff0f5 0%, #ffe1ec 24%, #f3d8f2 56%, #ddc9f0 100%); }
-  #av-scene .av-sun{ position:absolute; top:-24%; left:50%; transform:translateX(-50%); width:125%; height:64%; pointer-events:none;
-    background:radial-gradient(closest-side, rgba(255,250,235,.95), rgba(255,228,238,.42) 46%, transparent 72%); animation:av-sunpulse 7s ease-in-out infinite; }
-  @keyframes av-sunpulse{ 0%,100%{opacity:.85; transform:translateX(-50%) scale(1)} 50%{opacity:1; transform:translateX(-50%) scale(1.05)} }
-  #av-scene .av-ground{ position:absolute; left:-12%; right:-12%; bottom:-7%; height:36%; background:radial-gradient(62% 100% at 50% 100%, #f6b4cd 0%, #eda6c4 46%, rgba(237,166,196,0) 76%); filter:blur(2px); }
+  #av-scene .av-sky{ position:absolute; inset:0; background:linear-gradient(180deg,#fefdfb 0%, #fdf8f4 40%, #fbf2ee 72%, #f7ece6 100%); }
+  #av-scene .av-blob{ position:absolute; border-radius:50%; filter:blur(34px); pointer-events:none; opacity:.55; }
+  #av-scene .av-blob.b1{ left:-6%; bottom:14%; width:46%; height:30%; background:radial-gradient(closest-side,#cfe6c4,rgba(207,230,196,0)); }
+  #av-scene .av-blob.b2{ right:-8%; bottom:16%; width:50%; height:32%; background:radial-gradient(closest-side,#f6d2dd,rgba(246,210,221,0)); }
+  #av-scene .av-blob.b3{ left:34%; bottom:12%; width:38%; height:24%; background:radial-gradient(closest-side,#f3e0c4,rgba(243,224,196,0)); opacity:.45; }
+  #av-scene .av-floor{ position:absolute; left:-4%; right:-4%; bottom:0; height:24%; pointer-events:none;
+    background:linear-gradient(180deg, rgba(233,221,201,0) 0%, #e9ddc9 42%, #ddcfb6 100%);
+    -webkit-mask-image:linear-gradient(180deg, transparent, #000 38%); mask-image:linear-gradient(180deg, transparent, #000 38%); }
   #av-scene .av-twinkle{ position:absolute; width:7px; height:7px; pointer-events:none; border-radius:50%;
-    background:radial-gradient(closest-side, #fff, rgba(255,255,255,0)); animation:av-tw 3.4s ease-in-out infinite; }
-  @keyframes av-tw{ 0%,100%{opacity:.12; transform:scale(.6)} 50%{opacity:.9; transform:scale(1.15)} }
+    background:radial-gradient(closest-side, rgba(255,170,190,.9), rgba(255,170,190,0)); animation:av-tw 3.4s ease-in-out infinite; }
+  @keyframes av-tw{ 0%,100%{opacity:.1; transform:scale(.6)} 50%{opacity:.8; transform:scale(1.15)} }
   #av-scene .av-particle{ position:absolute; pointer-events:none; will-change:transform,opacity; }
-  #av-scene .av-cloud{ position:absolute; pointer-events:none; opacity:.5; background:radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0)); border-radius:50%; filter:blur(1px); animation:av-drift linear infinite; }
+  #av-scene .av-cloud{ position:absolute; pointer-events:none; opacity:.4; background:radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0)); border-radius:50%; filter:blur(1px); animation:av-drift linear infinite; }
   @keyframes av-drift{ from{ transform:translateX(-30vw); } to{ transform:translateX(130vw); } }
 
-  #av-scene .av-topbar{ position:absolute; top:0; left:0; right:0; z-index:6; display:flex; align-items:center; justify-content:space-between; padding:calc(14px + env(safe-area-inset-top)) 16px 8px; }
-  #av-scene .av-title{ font-family:'Fredoka',sans-serif; font-weight:700; font-size:28px; color:#5a2f44; letter-spacing:-.7px; line-height:.92; text-shadow:0 2px 0 rgba(255,255,255,.6); }
-  #av-scene .av-title b{ color:#e8607a; }
-  #av-scene .av-titlesub{ display:inline-block; font-family:'Nunito',sans-serif; font-size:10.5px; font-weight:800; color:#a86a82; margin-top:6px; letter-spacing:.6px;
-    background:rgba(255,255,255,.6); padding:3px 11px; border-radius:20px; box-shadow:0 3px 10px rgba(180,90,120,.12); }
-  #av-scene .av-x{ width:42px; height:42px; border-radius:50%; border:none; cursor:pointer; background:rgba(255,255,255,.74); color:#b0566e; font-size:22px; line-height:1; display:grid; place-items:center; box-shadow:0 6px 16px rgba(180,90,120,.25); backdrop-filter:blur(6px); transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease; }
-  #av-scene .av-x:hover{ transform:rotate(90deg) scale(1.08); background:#fff; }
+  #av-scene .av-topbar{ position:absolute; top:0; left:0; right:0; z-index:6; text-align:center; padding:calc(18px + env(safe-area-inset-top)) 60px 8px; }
+  #av-scene .av-title{ font-family:'Fredoka',sans-serif; font-weight:700; font-size:30px; color:#2c2630; letter-spacing:-.8px; line-height:.9; }
+  #av-scene .av-titlesub{ display:inline-block; font-family:'Nunito',sans-serif; font-size:11px; font-weight:700; color:#a99aa2; margin-top:8px; letter-spacing:2px; }
+  #av-scene .av-x{ position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; width:38px; height:38px; border-radius:50%; border:none; cursor:pointer; background:#ececec; color:#9a9a9a; font-size:20px; line-height:1; display:grid; place-items:center; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease; z-index:7; }
+  #av-scene .av-x:hover{ transform:rotate(90deg) scale(1.08); background:#e2e2e2; color:#777; }
 
-  #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:140px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:6px; padding:0 12px; }
-  #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:46%; max-width:210px; }
-  #av-scene .av-halo{ position:absolute; left:50%; top:44%; transform:translate(-50%,-50%); width:96%; height:80%; pointer-events:none; z-index:0;
-    background:radial-gradient(closest-side, rgba(255,255,255,.96), rgba(255,255,255,.7) 58%, rgba(255,240,248,0) 80%); filter:blur(4px); }
-  #av-scene .av-figure{ position:relative; width:100%; aspect-ratio:11/13; z-index:1; }
+  #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:118px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:2px; padding:0 18px; }
+  #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:48%; max-width:220px; }
+  #av-scene .av-figure{ position:relative; width:100%; aspect-ratio:1/1.08; z-index:1; }
   #av-scene .av-figure.jump{ animation:av-jump2 1s cubic-bezier(.34,1.56,.64,1); }
   @keyframes av-jump2{ 0%{transform:translateY(0)} 25%{transform:translateY(-15px)} 50%{transform:translateY(0)} 75%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
   #av-scene .av-poses{ position:absolute; inset:0; display:grid; place-items:center; transform-origin:50% 97%; animation:av-breathe 3.6s ease-in-out infinite; }
   #av-scene .av-actor:nth-child(2) .av-poses{ animation-delay:-1.8s; }
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
-  #av-scene .av-poses img{ position:absolute; max-width:96%; max-height:100%; object-fit:contain; opacity:0; mix-blend-mode:multiply; transition:opacity .13s ease; pointer-events:none; }
+  #av-scene .av-poses img{ position:absolute; max-width:100%; max-height:100%; object-fit:contain; opacity:0; transition:opacity .14s ease; pointer-events:none; }
   #av-scene .av-poses img.on{ opacity:1; }
   #av-scene .av-poses.squash{ animation:av-squash .3s ease; }
   @keyframes av-squash{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.965)} }
@@ -740,29 +737,61 @@ function avatarStyleOnce(){
   #av-scene .av-poses.kissb{ animation:av-kissb 1.05s ease-in-out; }
   @keyframes av-kissb{ 0%,100%{transform:rotate(0)} 40%{transform:rotate(7deg) translateY(-2px)} 72%{transform:rotate(-3deg)} }
 
-  #av-scene .av-shadow{ width:46%; height:12px; margin-top:-2px; border-radius:50%; background:radial-gradient(closest-side, rgba(150,70,100,.26), rgba(150,70,100,0)); animation:av-shadowpulse 3.6s ease-in-out infinite; }
+  #av-scene .av-motion{ position:absolute; top:42%; width:14px; height:34px; pointer-events:none; opacity:.32; transition:opacity .2s ease; }
+  #av-scene .av-motion.l{ left:-2%; } #av-scene .av-motion.r{ right:-2%; transform:scaleX(-1); }
+  #av-scene .av-motion svg{ width:100%; height:100%; display:block; }
+  #av-scene .av-figure.act .av-motion{ opacity:.85; animation:av-motpulse .5s ease-in-out 2; }
+  @keyframes av-motpulse{ 0%,100%{opacity:.4} 50%{opacity:.95} }
+
+  #av-scene .av-shadow{ width:54%; height:13px; margin-top:-6px; border-radius:50%; background:radial-gradient(closest-side, rgba(120,90,70,.22), rgba(120,90,70,0)); animation:av-shadowpulse 3.6s ease-in-out infinite; }
   #av-scene .av-actor:nth-child(2) .av-shadow{ animation-delay:-1.8s; }
   @keyframes av-shadowpulse{ 0%,100%{ transform:scaleX(1); opacity:.9; } 50%{ transform:scaleX(.84); opacity:.6; } }
-  #av-scene .av-aname{ margin-top:9px; font-family:'Fredoka',sans-serif; font-weight:600; font-size:15px; color:#6a3550; background:rgba(255,255,255,.76); padding:4px 15px; border-radius:12px; max-width:90%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; box-shadow:0 4px 12px rgba(180,90,120,.16); }
-  #av-scene .av-midheart{ position:absolute; left:50%; bottom:200px; transform:translateX(-50%); z-index:5; animation:av-beat 1.7s ease-in-out infinite; pointer-events:none; }
-  #av-scene .av-midheart svg{ width:30px; height:30px; filter:drop-shadow(0 4px 8px rgba(214,108,124,.5)); }
+
+  #av-scene .av-midheart{ position:absolute; left:50%; top:30%; transform:translateX(-50%); z-index:5; animation:av-beat 1.7s ease-in-out infinite; pointer-events:none; opacity:.85; }
+  #av-scene .av-midheart svg{ width:26px; height:26px; }
   @keyframes av-beat{ 0%,100%{transform:translateX(-50%) scale(1)} 18%{transform:translateX(-50%) scale(1.22)} 36%{transform:translateX(-50%) scale(1)} 54%{transform:translateX(-50%) scale(1.12)} }
 
-  #av-scene .av-float-heart{ position:absolute; bottom:42%; left:50%; width:18px; height:18px; z-index:5; pointer-events:none; background:no-repeat center/contain url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23e8607a'/></svg>"); animation:av-floatup 1.1s ease-out forwards; }
-  @keyframes av-floatup{ 0%{opacity:0;transform:translate(-50%,0) scale(.4)} 20%{opacity:1} 100%{opacity:0;transform:translate(var(--dx),-120px) scale(1.2) rotate(var(--rot))} }
+  #av-scene .av-float-heart{ position:absolute; bottom:40%; left:50%; width:18px; height:18px; z-index:5; pointer-events:none; background:no-repeat center/contain; animation:av-floatup 1.2s ease-out forwards; }
+  @keyframes av-floatup{ 0%{opacity:0;transform:translate(-50%,0) scale(.4)} 20%{opacity:1} 100%{opacity:0;transform:translate(var(--dx),-130px) scale(1.2) rotate(var(--rot))} }
 
-  #av-scene .av-dock{ position:absolute; left:0; right:0; bottom:0; z-index:7; padding:13px 14px calc(16px + env(safe-area-inset-bottom)); background:linear-gradient(180deg, rgba(255,247,242,0), rgba(255,247,242,.92) 32%, #fff7f2 100%); }
-  #av-scene .av-moods{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-  #av-scene .av-mood{ border:none; cursor:pointer; border-radius:16px; padding:11px 3px 10px; font-family:'Nunito',sans-serif; font-weight:800; font-size:11px; color:#7a3a52; background:#fff; box-shadow:0 6px 16px rgba(180,90,120,.16); display:flex; flex-direction:column; align-items:center; gap:4px; transition:transform .16s cubic-bezier(.34,1.56,.64,1), box-shadow .16s ease; }
-  #av-scene .av-mood:hover{ transform:translateY(-3px); box-shadow:0 10px 22px rgba(180,90,120,.24); }
-  #av-scene .av-mood:active{ transform:scale(.88) translateY(0); box-shadow:0 3px 10px rgba(180,90,120,.22); }
-  #av-scene .av-mood .av-emo{ font-size:19px; line-height:1; }
+  #av-scene .av-dock{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:7;
+    display:flex; gap:14px; background:#ffffff; border-radius:999px; padding:11px 18px; box-shadow:0 12px 32px rgba(170,90,110,.2); }
+  #av-scene .av-dock.pulse{ animation:av-dockpulse .4s ease; }
+  @keyframes av-dockpulse{ 0%,100%{transform:translateX(-50%) scale(1)} 40%{transform:translateX(-50%) scale(1.04)} }
+  #av-scene .av-mood{ position:relative; width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; background:#fdf3ee;
+    display:grid; place-items:center; font-size:23px; line-height:1; transition:transform .16s cubic-bezier(.34,1.56,.64,1), background .16s ease; -webkit-tap-highlight-color:transparent; }
+  #av-scene .av-mood:hover{ transform:translateY(-3px); background:#fceae2; }
+  #av-scene .av-mood:active{ transform:scale(.86); }
+  #av-scene .av-mood.ping::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:2.5px solid rgba(255,176,84,.85); animation:av-ping .62s ease-out; pointer-events:none; }
+  @keyframes av-ping{ 0%{transform:scale(.7);opacity:.9} 100%{transform:scale(1.5);opacity:0} }
   `;
   document.head.appendChild(s);
 }
-const AV_HEART='<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z" fill="#e8607a"/></svg>';
+const AV_HEART='<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z" fill="#f3a6b8"/></svg>';
+const HEART_RED="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23e8607a'/></svg>\")";
+const HEART_PINK="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23f3a6b8'/></svg>\")";
+const MOTION_SVG='<svg viewBox="0 0 14 34" fill="none" stroke="#caa9a0" stroke-width="2.4" stroke-linecap="round"><path d="M11 4 C5 8 5 13 11 17"/><path d="M12 17 C6 21 6 26 12 30"/></svg>';
 const CHIBI_FACE='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f6a8b8" stroke-width="1.7"/><circle cx="9" cy="11" r="1.15" fill="#f6a8b8"/><circle cx="15" cy="11" r="1.15" fill="#f6a8b8"/><path d="M9 14.4c1 1.3 5 1.3 6 0" stroke="#f6a8b8" stroke-width="1.5" stroke-linecap="round"/></svg>';
 const POSE={ open:'chibi-1.png', blink:'chibi-2.png', wave:'chibi-3.png', smile:'chibi-4.png' };
+
+function cleanWhite(img){
+  if(img.dataset.cleaned) return;
+  const run=()=>{
+    if(img.dataset.cleaned) return; img.dataset.cleaned='1';
+    try{
+      const w=img.naturalWidth, h=img.naturalHeight; if(!w||!h) return;
+      const c=document.createElement('canvas'); c.width=w; c.height=h; const cx=c.getContext('2d'); cx.drawImage(img,0,0);
+      const id=cx.getImageData(0,0,w,h); const d=id.data;
+      const white=(i)=> d[i]>240 && d[i+1]>240 && d[i+2]>240 && (Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2]))<10;
+      const seen=new Uint8Array(w*h); const stack=[];
+      for(let x=0;x<w;x++){ stack.push(x,0); stack.push(x,h-1); }
+      for(let y=0;y<h;y++){ stack.push(0,y); stack.push(w-1,y); }
+      while(stack.length){ const y=stack.pop(), x=stack.pop(); if(x<0||y<0||x>=w||y>=h) continue; const p=x+y*w; if(seen[p]) continue; if(!white(p*4)) continue; seen[p]=1; d[p*4+3]=0; stack.push(x+1,y); stack.push(x-1,y); stack.push(x,y+1); stack.push(x,y-1); }
+      cx.putImageData(id,0,0); img.src=c.toDataURL('image/png');
+    }catch(e){}
+  };
+  if(img.complete && img.naturalWidth) run(); else img.addEventListener('load', run, {once:true});
+}
 
 function setupAvatarFab(){
   avatarStyleOnce();
@@ -806,45 +835,51 @@ function setupAvatarFab(){
 
   const sc=document.createElement('div'); sc.id='av-scene';
   const imgs=()=>`<img class="av-pose on" data-pose="open" src="${POSE.open}" alt=""><img class="av-pose" data-pose="blink" src="${POSE.blink}" alt=""><img class="av-pose" data-pose="wave" src="${POSE.wave}" alt=""><img class="av-pose" data-pose="smile" src="${POSE.smile}" alt="">`;
-  const slotHTML=(who,label)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
-      <div class="av-halo"></div>
-      <div class="av-figure"><div class="av-poses">${imgs()}</div></div>
-      <div class="av-shadow"></div><div class="av-aname">${label}</div>
+  const slotHTML=(who)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
+      <div class="av-figure"><div class="av-poses">${imgs()}</div>
+        <span class="av-motion l">${MOTION_SVG}</span><span class="av-motion r">${MOTION_SVG}</span></div>
+      <div class="av-shadow"></div>
     </div>`;
   sc.innerHTML=`
-    <div class="av-sky"></div><div class="av-sun"></div><div class="av-ground"></div>
+    <div class="av-sky"></div>
+    <div class="av-blob b1"></div><div class="av-blob b2"></div><div class="av-blob b3"></div>
+    <div class="av-floor"></div>
     <div class="av-topbar">
-      <div><div class="av-title">Chibi <b>Sahnemiz</b></div><div class="av-titlesub">dokun · oynat · sev</div></div>
-      <button class="av-x" aria-label="Kapat">&times;</button>
+      <div class="av-title">Chibi Sahnemiz</div>
+      <div class="av-titlesub">dokun · oynat · sev</div>
     </div>
+    <button class="av-x" aria-label="Kapat">&times;</button>
     <div class="av-midheart">${AV_HEART}</div>
-    <div class="av-stage">${slotHTML('me','Sen')}${slotHTML('you','Sevgilin')}</div>
+    <div class="av-stage">${slotHTML('me')}${slotHTML('you')}</div>
     <div class="av-dock">
-      <div class="av-moods">
-        <button class="av-mood" data-act="blink"><span class="av-emo">😌</span>Goz kirp</button>
-        <button class="av-mood" data-act="wave"><span class="av-emo">👋</span>El salla</button>
-        <button class="av-mood" data-act="kiss"><span class="av-emo">😘</span>Opucuk</button>
-        <button class="av-mood" data-act="happy"><span class="av-emo">🥰</span>Mutlu</button>
-      </div>
+      <button class="av-mood" data-act="blink">😌</button>
+      <button class="av-mood" data-act="wave">👋</button>
+      <button class="av-mood" data-act="kiss">😘</button>
+      <button class="av-mood" data-act="happy">🥰</button>
     </div>`;
   document.body.appendChild(sc);
+  sc.querySelectorAll('img.av-pose').forEach(cleanWhite);
 
   sc.querySelector('.av-x').addEventListener('click', closeScene);
-  sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act)));
+  sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act, null, b)));
   sc.querySelectorAll('.av-actor').forEach(a=> a.addEventListener('click', ()=> doMood('happy', a.dataset.who)));
 }
 function posesOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-poses'):null; }
 function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-figure'):null; }
 function crossfade(posesEl, key){ if(!posesEl) return; posesEl.querySelectorAll('img.av-pose').forEach(im=> im.classList.toggle('on', im.dataset.pose===key)); }
 function bodyAnim(posesEl, cls, ms){ if(!posesEl) return; posesEl.classList.remove(cls); void posesEl.offsetWidth; posesEl.classList.add(cls); setTimeout(()=>posesEl.classList.remove(cls), ms); }
-function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.setProperty('--dx',(Math.random()*80-40).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1300); } }
+function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
+function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); h.style.setProperty('--dx',(Math.random()*90-45).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1400); } }
 function showPose(who, key, holdMs, bodyCls, bodyMs){
   const posesEl=posesOf(who), fig=figOf(who); if(!posesEl) return;
   crossfade(posesEl, key);
   if(bodyCls) bodyAnim(posesEl, bodyCls, bodyMs||1000);
-  if(holdMs>0) setTimeout(()=>{ if(document.getElementById('av-scene').classList.contains('open')) crossfade(posesEl,'open'); }, holdMs);
+  actFig(fig, bodyMs||1000);
+  if(holdMs>0) setTimeout(()=>{ const sc=document.getElementById('av-scene'); if(sc&&sc.classList.contains('open')) crossfade(posesEl,'open'); }, holdMs);
 }
-function doMood(act, who){
+function doMood(act, who, btnEl){
+  if(btnEl){ btnEl.classList.remove('ping'); void btnEl.offsetWidth; btnEl.classList.add('ping'); setTimeout(()=>btnEl.classList.remove('ping'),650);
+    const dock=btnEl.closest('.av-dock'); if(dock){ dock.classList.remove('pulse'); void dock.offsetWidth; dock.classList.add('pulse'); setTimeout(()=>dock.classList.remove('pulse'),420); } }
   const targets = who ? [who] : ['me','you'];
   targets.forEach(w=>{
     const fig=figOf(w);
@@ -859,20 +894,20 @@ function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) retu
 function closeScene(){ const sc=document.getElementById('av-scene'); if(sc) sc.classList.remove('open'); stopAmbient(); stopAutoBlink(); }
 function startAutoBlink(){
   stopAutoBlink();
-  const tick=()=>{ if(!document.getElementById('av-scene').classList.contains('open')) return;
-    document.querySelectorAll('#av-scene .av-poses').forEach(p=>{ if(Math.random()<0.7){ crossfade(p,'blink'); setTimeout(()=>{ if(document.getElementById('av-scene').classList.contains('open')) crossfade(p,'open'); },200); } });
+  const tick=()=>{ const sc=document.getElementById('av-scene'); if(!sc||!sc.classList.contains('open')) return;
+    document.querySelectorAll('#av-scene .av-poses').forEach(p=>{ if(Math.random()<0.7){ crossfade(p,'blink'); setTimeout(()=>{ const s=document.getElementById('av-scene'); if(s&&s.classList.contains('open')) crossfade(p,'open'); },200); } });
     _blink=setTimeout(tick, 2600+Math.random()*2800); };
   _blink=setTimeout(tick, 1700);
 }
 function stopAutoBlink(){ if(_blink){ clearTimeout(_blink); _blink=null; } }
 function startAmbient(sc){
   stopAmbient(); const sky=sc.querySelector('.av-sky');
-  if(!sky.querySelector('.av-twinkle')){ for(let i=0;i<7;i++){ const t=document.createElement('div'); t.className='av-twinkle'; t.style.left=(8+Math.random()*84)+'%'; t.style.top=(8+Math.random()*46)+'%'; t.style.animationDelay=(-Math.random()*3.4)+'s'; const sz=4+Math.random()*5; t.style.width=sz+'px'; t.style.height=sz+'px'; sky.appendChild(t); } }
-  for(let i=0;i<3;i++){ const c=document.createElement('div'); c.className='av-cloud'; const sz=80+Math.random()*120; c.style.width=sz+'px'; c.style.height=(sz*0.5)+'px'; c.style.top=(6+Math.random()*30)+'%'; c.style.animationDuration=(26+Math.random()*22)+'s'; c.style.animationDelay=(-Math.random()*30)+'s'; sky.appendChild(c); }
-  _ambient=setInterval(()=>{ if(!sc.classList.contains('open')) return; const p=document.createElement('div'); p.className='av-particle'; p.innerHTML=AV_HEART; const sz=10+Math.random()*12; p.style.width=sz+'px'; p.style.height=sz+'px'; p.style.left=(Math.random()*100)+'%'; p.style.bottom='-20px'; sky.appendChild(p); const dx=(Math.random()*60-30), dur=4200+Math.random()*2600; p.animate([{transform:'translate(0,0) scale(.6)',opacity:0},{opacity:.8,offset:.2},{transform:`translate(${dx}px,-86vh) scale(1)`,opacity:0}],{duration:dur,easing:'ease-out'}); setTimeout(()=>p.remove(),dur); }, 900);
+  if(!sky.querySelector('.av-twinkle')){ for(let i=0;i<6;i++){ const t=document.createElement('div'); t.className='av-twinkle'; t.style.left=(8+Math.random()*84)+'%'; t.style.top=(10+Math.random()*40)+'%'; t.style.animationDelay=(-Math.random()*3.4)+'s'; const sz=4+Math.random()*5; t.style.width=sz+'px'; t.style.height=sz+'px'; sky.appendChild(t); } }
+  if(!sky.querySelector('.av-cloud')){ for(let i=0;i<2;i++){ const c=document.createElement('div'); c.className='av-cloud'; const sz=90+Math.random()*120; c.style.width=sz+'px'; c.style.height=(sz*0.45)+'px'; c.style.top=(8+Math.random()*26)+'%'; c.style.animationDuration=(30+Math.random()*22)+'s'; c.style.animationDelay=(-Math.random()*30)+'s'; sky.appendChild(c); } }
+  _ambient=setInterval(()=>{ if(!sc.classList.contains('open')) return; const p=document.createElement('div'); p.className='av-particle'; p.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); p.style.backgroundSize='contain'; p.style.backgroundRepeat='no-repeat'; const sz=10+Math.random()*12; p.style.width=sz+'px'; p.style.height=sz+'px'; p.style.left=(Math.random()*100)+'%'; p.style.bottom='-20px'; sky.appendChild(p); const dx=(Math.random()*60-30), dur=4400+Math.random()*2600; p.animate([{transform:'translate(0,0) scale(.6)',opacity:0},{opacity:.75,offset:.2},{transform:`translate(${dx}px,-88vh) scale(1)`,opacity:0}],{duration:dur,easing:'ease-out'}); setTimeout(()=>p.remove(),dur); }, 1000);
 }
 function stopAmbient(){ if(_ambient){ clearInterval(_ambient); _ambient=null; } }
-/* ===== /CHIBI SAHNESI v7 ===== */
+/* ===== /CHIBI SAHNESI v8 ===== */
 async function registerPush(){
   setupAvatarFab();
   if(!UID) return;
