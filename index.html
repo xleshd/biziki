@@ -901,12 +901,13 @@ function playWaveVideo(w){
   if(posesEl) posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity='0'; });
   vid.style.opacity='1';
   try{ vid.currentTime=0; }catch(e){}
+    vid.muted=false; try{ vid.volume=1; }catch(e){}
   let started=false;
   const onPlay=()=>{ started=true; vid.removeEventListener('playing', onPlay); };
   vid.addEventListener('playing', onPlay);
-  const p=vid.play();
-  if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started) fallback(); }, 450); }); p.catch(()=>{ fallback(); }); }
-  setTimeout(()=>{ if(!started) fallback(); }, 1300);
+  const tryPlay=(silent)=>{ if(silent) vid.muted=true; const p=vid.play(); if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started) fallback(); }, 450); }); p.catch(()=>{ if(!silent) tryPlay(true); else fallback(); }); } };
+  tryPlay(false);
+  setTimeout(()=>{ if(!started) fallback(); }, 1500);
 }
 function showPose(who, key, holdMs, bodyCls, bodyMs){
   const posesEl=posesOf(who), fig=figOf(who); if(!posesEl) return;
