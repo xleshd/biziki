@@ -721,15 +721,15 @@ function avatarStyleOnce(){
   #av-scene .av-x{ position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; width:38px; height:38px; border-radius:50%; border:none; cursor:pointer; background:#ececec; color:#9a9a9a; font-size:20px; line-height:1; display:grid; place-items:center; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease; z-index:7; }
   #av-scene .av-x:hover{ transform:rotate(90deg) scale(1.08); background:#e2e2e2; color:#777; }
 
-  #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:118px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:2px; padding:0 18px; }
-  #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:48%; max-width:220px; }
-  #av-scene .av-figure{ position:relative; width:100%; aspect-ratio:1/1.08; z-index:1; }
+    #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:110px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:16px; padding:0 14px; }
+  #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:auto; max-width:none; }
+  #av-scene .av-figure{ position:relative; width:min(44vw, 42vh); aspect-ratio:1/1.2; z-index:1; }
   #av-scene .av-figure.jump{ animation:av-jump2 1s cubic-bezier(.34,1.56,.64,1); }
   @keyframes av-jump2{ 0%{transform:translateY(0)} 25%{transform:translateY(-15px)} 50%{transform:translateY(0)} 75%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
   #av-scene .av-poses{ position:absolute; inset:0; display:grid; place-items:center; transform-origin:50% 97%; animation:av-breathe 3.6s ease-in-out infinite; }
   #av-scene .av-actor:nth-child(2) .av-poses{ animation-delay:-1.8s; }
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
-  #av-scene .av-poses img{ position:absolute; max-width:100%; max-height:100%; object-fit:contain; opacity:0; transition:opacity .14s ease; pointer-events:none; }
+  #av-scene .av-poses img{ position:absolute; max-width:100%; max-height:100%; object-fit:contain; opacity:0; transition:opacity .14s ease; pointer-events:none; mix-blend-mode:multiply; }
   #av-scene .av-poses img.on{ opacity:1; }
   #av-scene .av-poses.squash{ animation:av-squash .3s ease; }
   @keyframes av-squash{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.965)} }
