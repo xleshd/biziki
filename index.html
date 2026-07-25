@@ -765,6 +765,7 @@ function avatarStyleOnce(){
   #av-scene .av-mood:active{ transform:scale(.86); }
   #av-scene .av-mood.ping::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:2.5px solid rgba(255,176,84,.85); animation:av-ping .62s ease-out; pointer-events:none; }
   @keyframes av-ping{ 0%{transform:scale(.7);opacity:.9} 100%{transform:scale(1.5);opacity:0} }
+    #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
   `;
   document.head.appendChild(s);
 }
@@ -838,7 +839,7 @@ function setupAvatarFab(){
   const imgs=()=>`<img class="av-pose on" data-pose="open" src="${POSE.open}" alt=""><img class="av-pose" data-pose="blink" src="${POSE.blink}" alt=""><img class="av-pose" data-pose="wave" src="${POSE.wave}" alt=""><img class="av-pose" data-pose="smile" src="${POSE.smile}" alt="">`;
   const slotHTML=(who)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
       <div class="av-figure"><div class="av-poses">${imgs()}</div>
-        <span class="av-motion l">${MOTION_SVG}</span><span class="av-motion r">${MOTION_SVG}</span></div>
+        <span class="av-motion l">${MOTION_SVG}</span><span class="av-motion r">${MOTION_SVG}</span><video class="av-vid" src="chibi-wave.mp4" muted playsinline preload="auto" webkit-playsinline></video></div>
       <div class="av-shadow"></div>
     </div>`;
   sc.innerHTML=`
@@ -860,6 +861,7 @@ function setupAvatarFab(){
     </div>`;
   document.body.appendChild(sc);
   sc.querySelectorAll('img.av-pose').forEach(cleanWhite);
+    sc.querySelectorAll('video.av-vid').forEach(v=> v.addEventListener('ended', ()=>{ const fig=v.closest('.av-figure'); if(!fig) return; const posesEl=fig.querySelector('.av-poses'); if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); crossfade(posesEl,'open'); } v.style.opacity='0'; }));
 
   sc.querySelector('.av-x').addEventListener('click', closeScene);
   sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act, null, b)));
@@ -867,6 +869,12 @@ function setupAvatarFab(){
 }
 function posesOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-poses'):null; }
 function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-figure'):null; }
+function playWaveVideo(w){
+  const fig=figOf(w); if(!fig) return; const vid=fig.querySelector('video.av-vid'); const posesEl=posesOf(w);
+  if(!vid){ showPose(w,'wave',1080,'waveb',1120); return; }
+  if(posesEl) posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity='0'; });
+  vid.style.opacity='1'; try{ vid.currentTime=0; }catch(e){} const p=vid.play(); if(p&&p.catch) p.catch(()=>{});
+}
 function crossfade(posesEl, key){ if(!posesEl) return; posesEl.querySelectorAll('img.av-pose').forEach(im=> im.classList.toggle('on', im.dataset.pose===key)); }
 function bodyAnim(posesEl, cls, ms){ if(!posesEl) return; posesEl.classList.remove(cls); void posesEl.offsetWidth; posesEl.classList.add(cls); setTimeout(()=>posesEl.classList.remove(cls), ms); }
 function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
@@ -885,7 +893,7 @@ function doMood(act, who, btnEl){
   targets.forEach(w=>{
     const fig=figOf(w);
     if(act==='blink'){ showPose(w,'blink',170,'squash',320); }
-    else if(act==='wave'){ showPose(w,'wave',1080,'waveb',1120); }
+        else if(act==='wave'){ playWaveVideo(w); }
     else if(act==='happy'){ showPose(w,'smile',1450,null,0); if(fig){ fig.classList.remove('jump'); void fig.offsetWidth; fig.classList.add('jump'); setTimeout(()=>fig.classList.remove('jump'),1050); } spawnHearts(fig,3); }
     else if(act==='kiss'){ showPose(w,'blink',1050,'kissb',1080); spawnHearts(fig,5); }
   });
