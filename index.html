@@ -239,7 +239,12 @@
     .phone{ width:100%; height:100vh; max-height:100vh; border-radius:0; border:none; box-shadow:none; }
   }
 </style>
-
+<style>
+  /* gri video arka planını beyazlatıp yok eder */
+  #av-scene .av-idle, #av-scene .av-vid{
+    filter: brightness(1.14) contrast(1.12) saturate(1.12) !important;
+  }
+</style>
 <script type="importmap">
 { "imports": {
   "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
