@@ -870,7 +870,7 @@ function setupAvatarFab(){
   document.body.appendChild(sc);
   sc.querySelectorAll('img.av-pose').forEach(cleanWhite);
   sc.querySelectorAll('.av-figure').forEach(fig=>{ if(fig.querySelector('video.av-vid')) return;
-    const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=true; v.playsInline=true; v.preload='auto';
+    const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=false; v.playsInline=true; v.preload='auto';
     v.setAttribute('webkit-playsinline',''); v.setAttribute('playsinline','');
     v.addEventListener('ended', ()=>{ const posesEl=fig.querySelector('.av-poses'); if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); crossfade(posesEl,'open'); } v.style.opacity='0'; });
     v.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi — repo kokune yukledin mi?'); } });
