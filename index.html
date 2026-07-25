@@ -690,6 +690,7 @@ function notifyOthers(title, body){
       body: JSON.stringify({ title, body, excludeUid: UID })
     }).catch(()=>{});
   }catch(e){}
+}
 /* ===== CHIBI SAHNESI v8 (referans mizanpaj + gercek-seffaf PNG + hap dock + ping) ===== */
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
@@ -1074,7 +1075,7 @@ function updateXP(){
   const need=xpForLevel(DB.pet.level||1), pct=Math.min(100,(DB.pet.xp||0)/need*100);
   const f=$('xpFill'); if(f) f.style.width=pct+'%';
   const l=$('xpTopL'); if(l) l.textContent='Seviye '+(DB.pet.level||1);
-  const r=$('xpTopR'); if(r) r.textContent=Math.floor(DB.pet.xp||0)+' / '+need+' XP';
+  const r=$('xpTopR'); if(r) r.textContent=Math.floor(DB.pet.xp||0)+' / '+need;
 }
 function scheduleLoveEnd(){
   clearTimeout(window._loveT);
@@ -1207,7 +1208,7 @@ function snapBack(el){
 function startDragPet(e, big){
   e.preventDefault();
   const sx=e.clientX, sy=e.clientY;
-  let mode=null; // null=henüz değil, 'noop', 'drag'
+  let mode=null;
   const mover=big.closest('.pet-mover');
   try{ big.setPointerCapture(e.pointerId); }catch(_){}
   const bed=$('bedTarget');
@@ -1222,8 +1223,8 @@ function startDragPet(e, big){
   function up(ev){
     big.removeEventListener('pointermove',move); big.removeEventListener('pointerup',up); big.removeEventListener('pointercancel',up);
     if(bed) bed.classList.remove('drop-hover');
-    if(!mode){ boopPet(); return; }      // dokunma = sev
-    if(mode==='noop') return;            // başka odada sürükleme denendi, hiçbir şey
+    if(!mode){ boopPet(); return; }
+    if(mode==='noop') return;
     let hit=false;
     if(bed){ const bc=centerOf(bed); hit=Math.hypot(ev.clientX-bc.x, ev.clientY-bc.y)<82; }
     mover.style.transition='transform .42s cubic-bezier(.34,1.3,.5,1)';
