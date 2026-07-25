@@ -698,7 +698,7 @@ function notifyOthers(title, body){
     }).catch(()=>{});
   }catch(e){}
 }
-/* ===== CHIBI SAHNESI v8 (referans mizanpaj + gercek-seffaf PNG + hap dock + ping + MP4 wave) ===== */
+/* ===== CHIBI SAHNESI v8 (referans mizanpaj + seffaf PNG + hap dock + ping + MP4 wave + MP4 idle loop) ===== */
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
   const s=document.createElement('style'); s.id='av-css';
@@ -728,7 +728,7 @@ function avatarStyleOnce(){
   #av-scene .av-x{ position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; width:38px; height:38px; border-radius:50%; border:none; cursor:pointer; background:#ececec; color:#9a9a9a; font-size:20px; line-height:1; display:grid; place-items:center; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease; z-index:7; }
   #av-scene .av-x:hover{ transform:rotate(90deg) scale(1.08); background:#e2e2e2; color:#777; }
 
-    #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:110px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:16px; padding:0 14px; }
+  #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:110px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:16px; padding:0 14px; }
   #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:auto; max-width:none; }
   #av-scene .av-figure{ position:relative; width:min(44vw, 42vh); aspect-ratio:1/1.2; z-index:1; }
   #av-scene .av-figure.jump{ animation:av-jump2 1s cubic-bezier(.34,1.56,.64,1); }
@@ -738,14 +738,14 @@ function avatarStyleOnce(){
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
   #av-scene .av-poses img{ position:absolute; max-width:100%; max-height:100%; object-fit:contain; opacity:0; transition:opacity .14s ease; pointer-events:none; mix-blend-mode:multiply; }
   #av-scene .av-poses img.on{ opacity:1; }
+  #av-scene .av-idle{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .2s ease; pointer-events:none; mix-blend-mode:multiply; z-index:1; }
+  #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
   #av-scene .av-poses.squash{ animation:av-squash .3s ease; }
   @keyframes av-squash{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.965)} }
   #av-scene .av-poses.waveb{ animation:av-waveb 1.1s ease-in-out; }
   @keyframes av-waveb{ 0%,100%{transform:rotate(0)} 25%{transform:rotate(-4deg) translateY(-2px)} 55%{transform:rotate(3.5deg)} 80%{transform:rotate(-2deg)} }
   #av-scene .av-poses.kissb{ animation:av-kissb 1.05s ease-in-out; }
   @keyframes av-kissb{ 0%,100%{transform:rotate(0)} 40%{transform:rotate(7deg) translateY(-2px)} 72%{transform:rotate(-3deg)} }
-
-  #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
 
   #av-scene .av-motion{ position:absolute; top:42%; width:14px; height:34px; pointer-events:none; opacity:.32; transition:opacity .2s ease; }
   #av-scene .av-motion.l{ left:-2%; } #av-scene .av-motion.r{ right:-2%; transform:scaleX(-1); }
@@ -869,12 +869,20 @@ function setupAvatarFab(){
     </div>`;
   document.body.appendChild(sc);
   sc.querySelectorAll('img.av-pose').forEach(cleanWhite);
-  sc.querySelectorAll('.av-figure').forEach(fig=>{ if(fig.querySelector('video.av-vid')) return;
-    const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=false; v.playsInline=true; v.preload='auto';
-    v.setAttribute('webkit-playsinline',''); v.setAttribute('playsinline','');
-    v.addEventListener('ended', ()=>{ const posesEl=fig.querySelector('.av-poses'); if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); crossfade(posesEl,'open'); } v.style.opacity='0'; });
-    v.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi — repo kokune yukledin mi?'); } });
-    fig.appendChild(v);
+  sc.querySelectorAll('.av-figure').forEach(fig=>{
+    if(!fig.querySelector('video.av-idle')){
+      const idle=document.createElement('video'); idle.className='av-idle'; idle.src='chibi-idle.mp4';
+      idle.muted=true; idle.loop=true; idle.playsInline=true; idle.preload='auto';
+      idle.setAttribute('playsinline',''); idle.setAttribute('webkit-playsinline','');
+      fig.appendChild(idle);
+    }
+    if(!fig.querySelector('video.av-vid')){
+      const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=false; v.playsInline=true; v.preload='auto';
+      v.setAttribute('webkit-playsinline',''); v.setAttribute('playsinline','');
+      v.addEventListener('ended', ()=>{ const posesEl=fig.querySelector('.av-poses'); if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); } v.style.opacity='0'; resumeIdle(fig); });
+      v.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi'); } });
+      fig.appendChild(v);
+    }
   });
 
   sc.querySelector('.av-x').addEventListener('click', closeScene);
@@ -883,6 +891,9 @@ function setupAvatarFab(){
 }
 function posesOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-poses'):null; }
 function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-figure'):null; }
+function idleVidOf(fig){ return fig?fig.querySelector('video.av-idle'):null; }
+function resumeIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; const p=iv.play(); if(p&&p.then){ p.then(()=>{ iv.style.opacity='1'; }).catch(()=>{ iv.style.opacity='0'; }); } else { iv.style.opacity='1'; } }
+function pauseIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; iv.style.opacity='0'; try{ iv.pause(); }catch(e){} }
 function crossfade(posesEl, key){ if(!posesEl) return; posesEl.querySelectorAll('img.av-pose').forEach(im=> im.classList.toggle('on', im.dataset.pose===key)); }
 function bodyAnim(posesEl, cls, ms){ if(!posesEl) return; posesEl.classList.remove(cls); void posesEl.offsetWidth; posesEl.classList.add(cls); setTimeout(()=>posesEl.classList.remove(cls), ms); }
 function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
@@ -890,6 +901,7 @@ function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=docu
 function playWaveVideo(w){
   const fig=figOf(w); if(!fig) return;
   const posesEl=posesOf(w);
+  pauseIdle(fig);
   const fallback=()=>{
     const v2=fig.querySelector('video.av-vid'); if(v2){ v2.style.opacity='0'; try{ v2.pause(); }catch(e){} }
     if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); showPose(w,'wave',1100,'waveb',1120); }
@@ -901,7 +913,7 @@ function playWaveVideo(w){
   if(posesEl) posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity='0'; });
   vid.style.opacity='1';
   try{ vid.currentTime=0; }catch(e){}
-    vid.muted=false; try{ vid.volume=1; }catch(e){}
+  vid.muted=false; try{ vid.volume=1; }catch(e){}
   let started=false;
   const onPlay=()=>{ started=true; vid.removeEventListener('playing', onPlay); };
   vid.addEventListener('playing', onPlay);
@@ -911,10 +923,11 @@ function playWaveVideo(w){
 }
 function showPose(who, key, holdMs, bodyCls, bodyMs){
   const posesEl=posesOf(who), fig=figOf(who); if(!posesEl) return;
+  pauseIdle(fig);
   crossfade(posesEl, key);
   if(bodyCls) bodyAnim(posesEl, bodyCls, bodyMs||1000);
   actFig(fig, bodyMs||1000);
-  if(holdMs>0) setTimeout(()=>{ const sc=document.getElementById('av-scene'); if(sc&&sc.classList.contains('open')) crossfade(posesEl,'open'); }, holdMs);
+  if(holdMs>0) setTimeout(()=>{ const sc=document.getElementById('av-scene'); if(sc&&sc.classList.contains('open')){ crossfade(posesEl,'open'); resumeIdle(fig); } }, holdMs);
 }
 function doMood(act, who, btnEl){
   if(btnEl){ btnEl.classList.remove('ping'); void btnEl.offsetWidth; btnEl.classList.add('ping'); setTimeout(()=>btnEl.classList.remove('ping'),650);
@@ -929,12 +942,12 @@ function doMood(act, who, btnEl){
   });
 }
 let _ambient=null, _blink=null;
-function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); startAutoBlink(); }
-function closeScene(){ const sc=document.getElementById('av-scene'); if(sc) sc.classList.remove('open'); stopAmbient(); stopAutoBlink(); }
+function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); startAutoBlink(); sc.querySelectorAll('.av-figure').forEach(fig=>resumeIdle(fig)); }
+function closeScene(){ const sc=document.getElementById('av-scene'); if(sc){ sc.classList.remove('open'); sc.querySelectorAll('.av-figure').forEach(fig=>pauseIdle(fig)); } stopAmbient(); stopAutoBlink(); }
 function startAutoBlink(){
   stopAutoBlink();
   const tick=()=>{ const sc=document.getElementById('av-scene'); if(!sc||!sc.classList.contains('open')) return;
-    document.querySelectorAll('#av-scene .av-poses').forEach(p=>{ if(Math.random()<0.7){ crossfade(p,'blink'); setTimeout(()=>{ const s=document.getElementById('av-scene'); if(s&&s.classList.contains('open')) crossfade(p,'open'); },200); } });
+    document.querySelectorAll('#av-scene .av-poses').forEach(p=>{ const fig=p.closest('.av-figure'); const iv=fig&&fig.querySelector('video.av-idle'); if(iv && iv.style.opacity==='1') return; if(Math.random()<0.7){ crossfade(p,'blink'); setTimeout(()=>{ const s=document.getElementById('av-scene'); if(s&&s.classList.contains('open')) crossfade(p,'open'); },200); } });
     _blink=setTimeout(tick, 2600+Math.random()*2800); };
   _blink=setTimeout(tick, 1700);
 }
