@@ -239,12 +239,7 @@
     .phone{ width:100%; height:100vh; max-height:100vh; border-radius:0; border:none; box-shadow:none; }
   }
 </style>
-<style>
-  /* gri video arka planını beyazlatıp yok eder */
-  #av-scene .av-idle, #av-scene .av-vid{
-    filter: brightness(1.14) contrast(1.12) saturate(1.12) !important;
-  }
-</style>
+
 <script type="importmap">
 { "imports": {
   "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
@@ -638,11 +633,8 @@ function startSync(){
   $('syncDot').classList.add('on');
   unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); } }));
     unsubs.push(onSnapshot(petDoc(), s=>{
-    const raw = s.exists()? s.data() : null;
-    const fixed = sanitizePet(DB.pet, raw);
-        // (koruma kaldırıldı — artık veri ezilmiyor)
-    DB.pet = fixed;
-    
+    if(!s.exists()){ if(current==='pet') renderPet(); if(current==='home') renderPetMini(); return; }
+    DB.pet = sanitizePet(DB.pet, s.data());
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
@@ -849,7 +841,7 @@ function setupAvatarFab(){
     document.head.appendChild(fx); }
 
   const sc=document.createElement('div'); sc.id='av-scene';
-    const imgs=()=>``;
+  const imgs=()=>``;
   const slotHTML=(who)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
       <div class="av-figure"><div class="av-poses">${imgs()}</div>
         <span class="av-motion l">${MOTION_SVG}</span><span class="av-motion r">${MOTION_SVG}</span></div>
@@ -1082,7 +1074,7 @@ function petSVG(sp, face, level, size, ids, clean){
   return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">${tail}${body}${feet}${head}</svg>`;
 }
 function eggSVG(size){
-  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="108" rx="62" ry="78" fill="#fff6ec"/><ellipse cx="100" cy="108" rx="62" ry="78" fill="none" stroke="#f0d9c2" stroke-width="3"/><path d="M44 96 l14 10 l10 -12 l14 12 l12 -10 l14 12 l12 -10 l14 10 l10 -12" fill="none" stroke="#e8c39e" stroke-width="3" stroke-linejoin="round"/><circle cx="82" cy="120" r="7" fill="${INK}"/><circle cx="84" cy="117" r="2.5" fill="#fff"/><circle cx="118" cy="120" r="7" fill="${INK}"/><circle cx="120" cy="117" r="2.5" fill="#fff"/><circle cx="68" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><circle cx="132" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><path d="M92 132 Q100 138 108 132" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="108" rx="62" ry="78" fill="#fff6ec"/><ellipse cx="100" cy="108" rx="62" ry="78" fill="none" stroke="#f0d9c2" stroke-width="3"/><path d="M44 96 l14 10 l10 -12 l14 12 l12 -10 l14 12 l12 -10 l14 10 l10 -12" fill="none" stroke="#e8c39e" stroke-width="3" stroke-linejoin="round"/><circle cx="82" cy="120" r="7" fill="${INK}"/><circle cx="84" cy="117" r="2.5" fill="#fff"/><circle cx="118" cy="120" r="7" fill="${INK}"/><circle cx="120" cy="117" r="2.5" fill="#fff"/><circle cx="68" cy="134" r="8" fill="${f7a8bc'.replace('f7a8bc','f7a8bc')}" opacity=".55"/><circle cx="132" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><path d="M92 132 Q100 138 108 132" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
 }
 
 const SPECIES = { cat:{name:'Kedi'}, dog:{name:'Köpek'}, rabbit:{name:'Tavşan'} };
@@ -1104,10 +1096,10 @@ function sanitizePet(prev, raw){
 function decay(pet){
   const hours=Math.max(0,(Date.now()-tickMs(pet))/3600000);
   return {
-    hunger:clamp((pet.hunger??80)-hours*8),
-    happy: clamp((pet.happy??80)-hours*7.2),
-    energy:clamp((pet.energy??80)-hours*5.6),
-    clean: clamp((pet.clean??80)-hours*6)
+    hunger:clamp((pet.hunger??80)-hours*2.5),
+    happy: clamp((pet.happy??80)-hours*2.2),
+    energy:clamp((pet.energy??80)-hours*1.8),
+    clean: clamp((pet.clean??80)-hours*2)
   };
 }
 function mood(pet,c){
@@ -1314,7 +1306,6 @@ function renderPet(){
     DB.pet = Object.assign({}, DB.pet, { species:_sp, name:_nm, level:_lv, xp:_xp,
       hunger: DB.pet.hunger!=null?DB.pet.hunger:80, happy: DB.pet.happy!=null?DB.pet.happy:80,
       energy: DB.pet.energy!=null?DB.pet.energy:80, clean: DB.pet.clean!=null?DB.pet.clean:80 });
-    try{ updateDoc(petDoc(), { species:_sp, name:_nm, level:_lv, xp:_xp }); }catch(e){}
   }
   const p=DB.pet, c=decay(p), md=mood(p,c), face=tempFace||md.face;
   const need=xpForLevel(p.level), xpPct=Math.min(100,(p.xp||0)/need*100);
