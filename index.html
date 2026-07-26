@@ -205,13 +205,11 @@
   .hotspot{ position:absolute; background:none; border:none; cursor:pointer; padding:4px; z-index:2; line-height:0; }
   .hotspot svg{ display:block; filter:drop-shadow(0 4px 6px rgba(80,40,60,.2)); transition:filter .15s; }
   .hotspot.drop-hover svg{ filter:drop-shadow(0 0 12px rgba(255,255,255,.95)); }
-  /* SÜRÜKLE-BIRAK OBJELERİ */
   .drag-obj{ cursor:grab; touch-action:none; }
   .drag-obj.dragging{ cursor:grabbing; z-index:30; }
   .drag-obj.obj-hint svg{ animation:objwiggle 2.2s ease-in-out infinite; }
   @keyframes objwiggle{0%,100%{transform:rotate(0) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
 
-  /* ODA MENÜSÜ */
   .room-tabs{ display:flex; gap:7px; margin-top:14px; }
   .room-tab{ flex:1; background:var(--krem); border:1px solid var(--border-soft); border-radius:15px; padding:9px 2px 7px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; box-shadow:var(--golge); opacity:.55; transition:.15s; }
   .room-tab.on{ opacity:1; background:linear-gradient(135deg,var(--mercan),var(--pembe)); border-color:transparent; }
@@ -220,7 +218,6 @@
   .rt-lbl{ font-size:9.5px; font-weight:800; color:var(--metin); }
   .room-tab.on .rt-lbl{ color:#fff; }
 
-  /* PET CANLI ANİMASYONLAR */
   .pet-breathe{ transform-box:view-box; transform-origin:100px 172px; animation:breathe 2.6s ease-in-out infinite; }
   .pet-head{ transform-box:view-box; transform-origin:100px 112px; animation:headtilt 3.6s ease-in-out infinite; }
   .pet-blink{ transform-box:fill-box; transform-origin:center; animation:blink 4.4s infinite; }
@@ -695,7 +692,7 @@ function notifyOthers(title, body){
     }).catch(()=>{});
   }catch(e){}
 }
-/* ===== CHIBI SAHNESI v8 (referans mizanpaj + seffaf PNG + hap dock + ping + MP4 wave + MP4 idle loop) ===== */
+/* ===== CHIBI SAHNESI v8 (video-only: PNG referansları kaldırıldı) ===== */
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
   const s=document.createElement('style'); s.id='av-css';
@@ -733,8 +730,6 @@ function avatarStyleOnce(){
   #av-scene .av-poses{ position:absolute; inset:0; display:grid; place-items:center; transform-origin:50% 97%; animation:av-breathe 3.6s ease-in-out infinite; }
   #av-scene .av-actor:nth-child(2) .av-poses{ animation-delay:-1.8s; }
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
-  #av-scene .av-poses img{ position:absolute; max-width:100%; max-height:100%; object-fit:contain; opacity:0; transition:opacity .14s ease; pointer-events:none; mix-blend-mode:multiply; }
-  #av-scene .av-poses img.on{ opacity:1; }
   #av-scene .av-idle{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .2s ease; pointer-events:none; mix-blend-mode:multiply; z-index:1; }
   #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
   #av-scene .av-poses.squash{ animation:av-squash .3s ease; }
@@ -779,26 +774,6 @@ const HEART_RED="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/200
 const HEART_PINK="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23f3a6b8'/></svg>\")";
 const MOTION_SVG='<svg viewBox="0 0 14 34" fill="none" stroke="#caa9a0" stroke-width="2.4" stroke-linecap="round"><path d="M11 4 C5 8 5 13 11 17"/><path d="M12 17 C6 21 6 26 12 30"/></svg>';
 const CHIBI_FACE='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f6a8b8" stroke-width="1.7"/><circle cx="9" cy="11" r="1.15" fill="#f6a8b8"/><circle cx="15" cy="11" r="1.15" fill="#f6a8b8"/><path d="M9 14.4c1 1.3 5 1.3 6 0" stroke="#f6a8b8" stroke-width="1.5" stroke-linecap="round"/></svg>';
-const POSE={};
-
-function cleanWhite(img){
-  if(img.dataset.cleaned) return;
-  const run=()=>{
-    if(img.dataset.cleaned) return; img.dataset.cleaned='1';
-    try{
-      const w=img.naturalWidth, h=img.naturalHeight; if(!w||!h) return;
-      const c=document.createElement('canvas'); c.width=w; c.height=h; const cx=c.getContext('2d'); cx.drawImage(img,0,0);
-      const id=cx.getImageData(0,0,w,h); const d=id.data;
-      const white=(i)=> d[i]>240 && d[i+1]>240 && d[i+2]>240 && (Math.max(d[i],d[i+1],d[i+2])-Math.min(d[i],d[i+1],d[i+2]))<10;
-      const seen=new Uint8Array(w*h); const stack=[];
-      for(let x=0;x<w;x++){ stack.push(x,0); stack.push(x,h-1); }
-      for(let y=0;y<h;y++){ stack.push(0,y); stack.push(w-1,y); }
-      while(stack.length){ const y=stack.pop(), x=stack.pop(); if(x<0||y<0||x>=w||y>=h) continue; const p=x+y*w; if(seen[p]) continue; if(!white(p*4)) continue; seen[p]=1; d[p*4+3]=0; stack.push(x+1,y); stack.push(x-1,y); stack.push(x,y+1); stack.push(x,y-1); }
-      cx.putImageData(id,0,0); img.src=c.toDataURL('image/png');
-    }catch(e){}
-  };
-  if(img.complete && img.naturalWidth) run(); else img.addEventListener('load', run, {once:true});
-}
 
 function setupAvatarFab(){
   avatarStyleOnce();
@@ -841,9 +816,8 @@ function setupAvatarFab(){
     document.head.appendChild(fx); }
 
   const sc=document.createElement('div'); sc.id='av-scene';
-  const imgs=()=>``;
   const slotHTML=(who)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
-      <div class="av-figure"><div class="av-poses">${imgs()}</div>
+      <div class="av-figure"><div class="av-poses"></div>
         <span class="av-motion l">${MOTION_SVG}</span><span class="av-motion r">${MOTION_SVG}</span></div>
       <div class="av-shadow"></div>
     </div>`;
@@ -875,7 +849,7 @@ function setupAvatarFab(){
     if(!fig.querySelector('video.av-vid')){
       const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=false; v.playsInline=true; v.preload='auto';
       v.setAttribute('webkit-playsinline',''); v.setAttribute('playsinline','');
-      v.addEventListener('ended', ()=>{ const posesEl=fig.querySelector('.av-poses'); if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); } v.style.opacity='0'; resumeIdle(fig); });
+      v.addEventListener('ended', ()=>{ const v2=fig.querySelector('video.av-vid'); if(v2){ v2.style.opacity='0'; } resumeIdle(fig); });
       v.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi'); } });
       fig.appendChild(v);
     }
@@ -890,40 +864,24 @@ function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s
 function idleVidOf(fig){ return fig?fig.querySelector('video.av-idle'):null; }
 function resumeIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; const p=iv.play(); if(p&&p.then){ p.then(()=>{ iv.style.opacity='1'; }).catch(()=>{ iv.style.opacity='0'; }); } else { iv.style.opacity='1'; } }
 function pauseIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; iv.style.opacity='0'; try{ iv.pause(); }catch(e){} }
-function crossfade(posesEl, key){ if(!posesEl) return; posesEl.querySelectorAll('img.av-pose').forEach(im=> im.classList.toggle('on', im.dataset.pose===key)); }
 function bodyAnim(posesEl, cls, ms){ if(!posesEl) return; posesEl.classList.remove(cls); void posesEl.offsetWidth; posesEl.classList.add(cls); setTimeout(()=>posesEl.classList.remove(cls), ms); }
 function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
 function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); h.style.setProperty('--dx',(Math.random()*90-45).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1400); } }
 function playWaveVideo(w){
   const fig=figOf(w); if(!fig) return;
-  const posesEl=posesOf(w);
   pauseIdle(fig);
-  const fallback=()=>{
-    const v2=fig.querySelector('video.av-vid'); if(v2){ v2.style.opacity='0'; try{ v2.pause(); }catch(e){} }
-    if(posesEl){ posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity=''; }); showPose(w,'wave',1100,'waveb',1120); }
-  };
   const vid=fig.querySelector('video.av-vid');
-  if(!vid){ fallback(); return; }
-  if(!vid.dataset.fb){ vid.dataset.fb='1'; vid.addEventListener('error', fallback); }
-  if(vid.networkState===3 || vid.error){ fallback(); return; }
-  if(posesEl) posesEl.querySelectorAll('img.av-pose').forEach(im=>{ im.style.opacity='0'; });
+  if(!vid){ return; }
+  if(vid.networkState===3 || vid.error){ return; }
   vid.style.opacity='1';
   try{ vid.currentTime=0; }catch(e){}
   vid.muted=false; try{ vid.volume=1; }catch(e){}
   let started=false;
   const onPlay=()=>{ started=true; vid.removeEventListener('playing', onPlay); };
   vid.addEventListener('playing', onPlay);
-  const tryPlay=(silent)=>{ if(silent) vid.muted=true; const p=vid.play(); if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started) fallback(); }, 450); }); p.catch(()=>{ if(!silent) tryPlay(true); else fallback(); }); } };
+  const tryPlay=(silent)=>{ if(silent) vid.muted=true; const p=vid.play(); if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started){ vid.style.opacity='0'; } }, 450); }); p.catch(()=>{ if(!silent) tryPlay(true); else { vid.style.opacity='0'; } }); } };
   tryPlay(false);
-  setTimeout(()=>{ if(!started) fallback(); }, 1500);
-}
-function showPose(who, key, holdMs, bodyCls, bodyMs){
-  const posesEl=posesOf(who), fig=figOf(who); if(!posesEl) return;
-  pauseIdle(fig);
-  crossfade(posesEl, key);
-  if(bodyCls) bodyAnim(posesEl, bodyCls, bodyMs||1000);
-  actFig(fig, bodyMs||1000);
-  if(holdMs>0) setTimeout(()=>{ const sc=document.getElementById('av-scene'); if(sc&&sc.classList.contains('open')){ crossfade(posesEl,'open'); resumeIdle(fig); } }, holdMs);
+  setTimeout(()=>{ if(!started){ vid.style.opacity='0'; } }, 1500);
 }
 function doMood(act, who, btnEl){
   if(btnEl){ btnEl.classList.remove('ping'); void btnEl.offsetWidth; btnEl.classList.add('ping'); setTimeout(()=>btnEl.classList.remove('ping'),650);
@@ -931,23 +889,15 @@ function doMood(act, who, btnEl){
   const targets = who ? [who] : ['me','you'];
   targets.forEach(w=>{
     const fig=figOf(w);
-    if(act==='blink'){ showPose(w,'blink',170,'squash',320); }
+    if(act==='blink'){ actFig(fig,320); }
     else if(act==='wave'){ playWaveVideo(w); }
-    else if(act==='happy'){ showPose(w,'smile',1450,null,0); if(fig){ fig.classList.remove('jump'); void fig.offsetWidth; fig.classList.add('jump'); setTimeout(()=>fig.classList.remove('jump'),1050); } spawnHearts(fig,3); }
-    else if(act==='kiss'){ showPose(w,'blink',1050,'kissb',1080); spawnHearts(fig,5); }
+    else if(act==='happy'){ if(fig){ fig.classList.remove('jump'); void fig.offsetWidth; fig.classList.add('jump'); setTimeout(()=>fig.classList.remove('jump'),1050); } spawnHearts(fig,3); }
+    else if(act==='kiss'){ actFig(fig,1080); spawnHearts(fig,5); }
   });
 }
-let _ambient=null, _blink=null;
-function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); startAutoBlink(); sc.querySelectorAll('.av-figure').forEach(fig=>resumeIdle(fig)); }
-function closeScene(){ const sc=document.getElementById('av-scene'); if(sc){ sc.classList.remove('open'); sc.querySelectorAll('.av-figure').forEach(fig=>pauseIdle(fig)); } stopAmbient(); stopAutoBlink(); }
-function startAutoBlink(){
-  stopAutoBlink();
-  const tick=()=>{ const sc=document.getElementById('av-scene'); if(!sc||!sc.classList.contains('open')) return;
-    document.querySelectorAll('#av-scene .av-poses').forEach(p=>{ const fig=p.closest('.av-figure'); const iv=fig&&fig.querySelector('video.av-idle'); if(iv && iv.style.opacity==='1') return; if(Math.random()<0.7){ crossfade(p,'blink'); setTimeout(()=>{ const s=document.getElementById('av-scene'); if(s&&s.classList.contains('open')) crossfade(p,'open'); },200); } });
-    _blink=setTimeout(tick, 2600+Math.random()*2800); };
-  _blink=setTimeout(tick, 1700);
-}
-function stopAutoBlink(){ if(_blink){ clearTimeout(_blink); _blink=null; } }
+let _ambient=null;
+function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); sc.querySelectorAll('.av-figure').forEach(fig=>resumeIdle(fig)); }
+function closeScene(){ const sc=document.getElementById('av-scene'); if(sc){ sc.classList.remove('open'); sc.querySelectorAll('.av-figure').forEach(fig=>pauseIdle(fig)); } stopAmbient(); }
 function startAmbient(sc){
   stopAmbient(); const sky=sc.querySelector('.av-sky');
   if(!sky.querySelector('.av-twinkle')){ for(let i=0;i<6;i++){ const t=document.createElement('div'); t.className='av-twinkle'; t.style.left=(8+Math.random()*84)+'%'; t.style.top=(10+Math.random()*40)+'%'; t.style.animationDelay=(-Math.random()*3.4)+'s'; const sz=4+Math.random()*5; t.style.width=sz+'px'; t.style.height=sz+'px'; sky.appendChild(t); } }
@@ -955,7 +905,7 @@ function startAmbient(sc){
   _ambient=setInterval(()=>{ if(!sc.classList.contains('open')) return; const p=document.createElement('div'); p.className='av-particle'; p.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); p.style.backgroundSize='contain'; p.style.backgroundRepeat='no-repeat'; const sz=10+Math.random()*12; p.style.width=sz+'px'; p.style.height=sz+'px'; p.style.left=(Math.random()*100)+'%'; p.style.bottom='-20px'; sky.appendChild(p); const dx=(Math.random()*60-30), dur=4400+Math.random()*2600; p.animate([{transform:'translate(0,0) scale(.6)',opacity:0},{opacity:.75,offset:.2},{transform:`translate(${dx}px,-88vh) scale(1)`,opacity:0}],{duration:dur,easing:'ease-out'}); setTimeout(()=>p.remove(),dur); }, 1000);
 }
 function stopAmbient(){ if(_ambient){ clearInterval(_ambient); _ambient=null; } }
-/* ===== /CHIBI SAHNESI v8 ===== */
+/* ===== /CHIBI SAHNESI ===== */
 async function registerPush(){
   setupAvatarFab();
   if(!UID) return;
@@ -1074,7 +1024,7 @@ function petSVG(sp, face, level, size, ids, clean){
   return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">${tail}${body}${feet}${head}</svg>`;
 }
 function eggSVG(size){
-<circle cx="68" cy="134" r="8" fill="#f7a8bc" opacity=".55"/>
+  return `<svg viewBox="0 0 200 200" width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="108" rx="62" ry="78" fill="#fff6ec"/><ellipse cx="100" cy="108" rx="62" ry="78" fill="none" stroke="#f0d9c2" stroke-width="3"/><path d="M44 96 l14 10 l10 -12 l14 12 l12 -10 l14 12 l12 -10 l14 10 l10 -12" fill="none" stroke="#e8c39e" stroke-width="3" stroke-linejoin="round"/><circle cx="82" cy="120" r="7" fill="${INK}"/><circle cx="84" cy="117" r="2.5" fill="#fff"/><circle cx="118" cy="120" r="7" fill="${INK}"/><circle cx="120" cy="117" r="2.5" fill="#fff"/><circle cx="68" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><circle cx="132" cy="134" r="8" fill="#f7a8bc" opacity=".55"/><path d="M92 132 Q100 138 108 132" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
 }
 
 const SPECIES = { cat:{name:'Kedi'}, dog:{name:'Köpek'}, rabbit:{name:'Tavşan'} };
@@ -1297,15 +1247,6 @@ function renderPet(){
   if(!DB.pet){
     b.innerHTML=`<div style="text-align:center;"><div class="egg-art">${eggSVG(150)}</div><p style="margin:16px 0 6px;font-weight:800;font-size:16px;">Yumurtanız çatlamak üzere!</p><label>Pet'inize bir isim verin</label><input id="petName" placeholder="örn. Mırmır" /><button class="btn" onclick="hatchPet()">Yumurtayı Çatlat</button><p style="font-size:11px;color:var(--soluk);margin-top:12px;">Tür sürpriz olsun (kedi, köpek veya tavşan)</p></div>`;
     return;
-  }
-    if(DB.pet && (!DB.pet.species || !DB.pet.name || DB.pet.level==null)){
-    const _sp = DB.pet.species || 'cat';
-    const _nm = (DB.pet.name && String(DB.pet.name).trim()) || 'Minik';
-    const _lv = Number(DB.pet.level) || 1;
-    const _xp = Number(DB.pet.xp) || 0;
-    DB.pet = Object.assign({}, DB.pet, { species:_sp, name:_nm, level:_lv, xp:_xp,
-      hunger: DB.pet.hunger!=null?DB.pet.hunger:80, happy: DB.pet.happy!=null?DB.pet.happy:80,
-      energy: DB.pet.energy!=null?DB.pet.energy:80, clean: DB.pet.clean!=null?DB.pet.clean:80 });
   }
   const p=DB.pet, c=decay(p), md=mood(p,c), face=tempFace||md.face;
   const need=xpForLevel(p.level), xpPct=Math.min(100,(p.xp||0)/need*100);
