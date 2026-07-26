@@ -146,7 +146,6 @@
   .pp-prev img{ width:100%; height:100%; object-fit:cover; display:block; }
   .pp-prev svg{ width:34px; height:34px; stroke:var(--soluk); }
 
-  /* PET */
   .pet-mini{ background:var(--krem); border-radius:22px; padding:14px 16px; margin:18px 0 4px; box-shadow:var(--golge); cursor:pointer; border:1px solid var(--border-soft); display:flex; align-items:center; gap:14px; transition:transform .15s; }
   .pet-mini:active{ transform:scale(.98); }
   .pet-mini .pm-art{ width:58px; height:58px; flex:none; }
@@ -182,7 +181,6 @@
   .egg-art{ text-align:center; cursor:pointer; animation:eggwob 1.1s ease-in-out infinite; display:inline-block; line-height:0; }
   @keyframes eggwob{ 0%,100%{transform:rotate(-6deg);} 50%{transform:rotate(6deg);} }
 
-  /* ODA SAHNESİ */
   .pet-scene{ position:relative; height:236px; border-radius:24px; overflow:hidden; box-shadow:var(--golge); border:1px solid var(--border-soft); }
   .scene-bg{ position:absolute; inset:0; }
   .scene-home{ background:linear-gradient(180deg,#ffe9d6 0%,#ffd0bb 100%); }
@@ -629,9 +627,17 @@ function startSync(){
   unsubs.forEach(u=>u()); unsubs=[];
   $('syncDot').classList.add('on');
   unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); } }));
-    unsubs.push(onSnapshot(petDoc(), s=>{
+  unsubs.push(onSnapshot(petDoc(), s=>{
     if(!s.exists()){ if(current==='pet') renderPet(); if(current==='home') renderPetMini(); return; }
-    DB.pet = sanitizePet(DB.pet, s.data());
+    let data = s.data() || {};
+    const inXp = Number(data.xp)||0, inLv = Number(data.level)||1;
+    writeFloor(inXp, inLv);
+    const fl = readFloor();
+    if(inXp < fl.xp || inLv < fl.level){
+      data = Object.assign({}, data, { xp: fl.xp, level: fl.level });
+      try{ updateDoc(petDoc(), { xp: fl.xp, level: fl.level }); }catch(e){}
+    }
+    DB.pet = sanitizePet(DB.pet, data);
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
@@ -692,7 +698,7 @@ function notifyOthers(title, body){
     }).catch(()=>{});
   }catch(e){}
 }
-/* ===== CHIBI SAHNESI v8 (video-only: PNG referansları kaldırıldı) ===== */
+/* ===== CHIBI SAHNESI (video-only) ===== */
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
   const s=document.createElement('style'); s.id='av-css';
@@ -732,12 +738,6 @@ function avatarStyleOnce(){
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
   #av-scene .av-idle{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .2s ease; pointer-events:none; mix-blend-mode:multiply; z-index:1; }
   #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
-  #av-scene .av-poses.squash{ animation:av-squash .3s ease; }
-  @keyframes av-squash{ 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.965)} }
-  #av-scene .av-poses.waveb{ animation:av-waveb 1.1s ease-in-out; }
-  @keyframes av-waveb{ 0%,100%{transform:rotate(0)} 25%{transform:rotate(-4deg) translateY(-2px)} 55%{transform:rotate(3.5deg)} 80%{transform:rotate(-2deg)} }
-  #av-scene .av-poses.kissb{ animation:av-kissb 1.05s ease-in-out; }
-  @keyframes av-kissb{ 0%,100%{transform:rotate(0)} 40%{transform:rotate(7deg) translateY(-2px)} 72%{transform:rotate(-3deg)} }
 
   #av-scene .av-motion{ position:absolute; top:42%; width:14px; height:34px; pointer-events:none; opacity:.32; transition:opacity .2s ease; }
   #av-scene .av-motion.l{ left:-2%; } #av-scene .av-motion.r{ right:-2%; transform:scaleX(-1); }
@@ -859,12 +859,10 @@ function setupAvatarFab(){
   sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act, null, b)));
   sc.querySelectorAll('.av-actor').forEach(a=> a.addEventListener('click', ()=> doMood('happy', a.dataset.who)));
 }
-function posesOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-poses'):null; }
 function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-figure'):null; }
 function idleVidOf(fig){ return fig?fig.querySelector('video.av-idle'):null; }
 function resumeIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; const p=iv.play(); if(p&&p.then){ p.then(()=>{ iv.style.opacity='1'; }).catch(()=>{ iv.style.opacity='0'; }); } else { iv.style.opacity='1'; } }
 function pauseIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; iv.style.opacity='0'; try{ iv.pause(); }catch(e){} }
-function bodyAnim(posesEl, cls, ms){ if(!posesEl) return; posesEl.classList.remove(cls); void posesEl.offsetWidth; posesEl.classList.add(cls); setTimeout(()=>posesEl.classList.remove(cls), ms); }
 function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
 function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); h.style.setProperty('--dx',(Math.random()*90-45).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1400); } }
 function playWaveVideo(w){
@@ -1032,6 +1030,13 @@ function stageName(lv){ if(lv<=2)return 'bebek'; if(lv<=4)return 'çocuk'; retur
 function stageSize(lv){ if(lv<=2)return 116; if(lv<=4)return 132; return 150; }
 function xpForLevel(l){ return l*60; }
 function tickMs(pet){ const t=pet.lastTick; if(!t) return Date.now(); if(typeof t==='number') return t; if(t.toMillis) return t.toMillis(); if(t.seconds!=null) return t.seconds*1000; return Date.now(); }
+
+/* ===== XP/LEVEL ZEMİN KORUMASI (ezilmeye karşı) ===== */
+function petFloorKey(){ return 'biziki_petfloor_' + (CODE||'_'); }
+function readFloor(){ try{ const f=JSON.parse(localStorage.getItem(petFloorKey())); return (f&&typeof f==='object')?{xp:Number(f.xp)||0, level:Number(f.level)||1}:{xp:0,level:1}; }catch(e){ return {xp:0,level:1}; } }
+function writeFloor(xp, level){ try{ const f=readFloor(); const nx=Math.max(f.xp, Number(xp)||0); const nl=Math.max(f.level, Number(level)||1); if(nx!==f.xp||nl!==f.level){ localStorage.setItem(petFloorKey(), JSON.stringify({xp:nx,level:nl})); } }catch(e){} }
+function resetFloor(){ try{ localStorage.removeItem(petFloorKey()); }catch(e){} }
+
 function sanitizePet(prev, raw){
   const base = (raw && typeof raw==='object') ? raw : {};
   const hasAny = !!(base.species || base.name || base.level!=null || base.hunger!=null || base.xp!=null);
@@ -1276,6 +1281,7 @@ function renderPet(){
 window.hatchPet = async ()=>{
   const nm=($('petName')?.value.trim())||'Minik';
   const keys=Object.keys(SPECIES); const sp=keys[Math.floor(Math.random()*keys.length)];
+  resetFloor();
   await setDoc(petDoc(), { species:sp, name:nm, bornAt:serverTimestamp(), level:1, xp:0, hunger:80, happy:80, energy:80, clean:80, lastTick:serverTimestamp(), lastCare:null, loveUntil:0 });
   toast(`${SPECIES[sp].name} yumurtadan çıktı!`);
 };
@@ -1296,6 +1302,7 @@ window.care = async function(type){
   if(prev && prev.idx!==ME && prevAt && (Date.now()-prevAt)<180000){ loveUntil=Date.now()+20000; loveMsg=true; }
   await updateDoc(petDoc(), { hunger:h, happy:hp, energy:en, clean:cl, xp, level:lv, lastTick:serverTimestamp(), lastCare:{idx:ME, at:serverTimestamp()}, loveUntil });
   DB.pet={...DB.pet, hunger:h, happy:hp, energy:en, clean:cl, xp, level:lv, loveUntil};
+  writeFloor(xp, lv);
   tempFace = type==='sleep' ? 'sleepy' : (type==='love' ? 'love' : 'happy');
   window._lastSay = loveMsg ? 'İkiniz birlikte ilgilendiniz, çok mutlu!' : (leveled ? pick(CARE_LINES[type])+' Büyüdüm, bak!' : pick(CARE_LINES[type]));
   applyFace(tempFace); lastFace=tempFace;
@@ -1311,6 +1318,7 @@ window.deletePet = async function(){
   if(!DB.pet) return;
   if(!confirm("Pet'i silmek istediğine emin misin? Bu işlem geri alınamaz.")) return;
   await deleteDoc(petDoc());
+  resetFloor();
   toast('Pet silindi');
 };
 
