@@ -631,6 +631,7 @@ window.go = function(name){
 };
 
 function pushNotif(title, body){
+    if(current==='chat') return;
   if(!('Notification' in window) || Notification.permission!=='granted') return;
   try{
     if(navigator.serviceWorker && navigator.serviceWorker.ready){
