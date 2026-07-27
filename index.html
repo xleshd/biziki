@@ -684,6 +684,19 @@ let sPlayerRef = null;
 const sCharacters = {};
 let sActiveUIBubble = null;
 
+/* --- online senkron durumu --- */
+let sInWorld = false;
+let sWorldEntered = false;
+let sSyncUnsub = null;
+let sHeartbeat = null;
+let sStaleTimer = null;
+let sShownReqTs = 0;
+let sSentReqTs = 0;
+let sSentHandled = true;
+let sCurrentReq = null;
+
+const sanDoc = () => doc(db, 'couples', CODE, 'meta', 'sanalika');
+
 const sHairStyles = {
   'style-1': `<path d="M 26 32 C 26 -2, 74 -2, 74 32 C 74 20, 62 14, 50 14 C 38 14, 26 20, 26 32 Z" />`,
   'style-2': `<path d="M 26 32 C 26 -5, 74 -5, 74 32 C 78 50, 72 58, 68 55 C 66 35, 68 18, 50 16 C 32 18, 34 35, 32 55 C 28 58, 22 50, 26 32 Z" />`,
@@ -697,69 +710,56 @@ function sGenerateSVG(idPrefix) {
   <div class="s-nametag" id="${idPrefix}-nametag">Karakter</div>
   <svg id="${idPrefix}-svg" class="s-avatar-svg" viewBox="0 0 100 130">
     <ellipse cx="50" cy="125" rx="22" ry="5" fill="rgba(0,0,0,0.2)" />
-
     <g class="s-leg-left">
       <rect class="s-svg-pants" x="38" y="75" width="10" height="32" rx="4" />
       <rect class="s-svg-shoes" x="36" y="102" width="12" height="8" rx="3" />
     </g>
-
     <g class="s-leg-right">
       <rect class="s-svg-pants" x="52" y="75" width="10" height="32" rx="4" />
       <rect class="s-svg-shoes" x="52" y="102" width="12" height="8" rx="3" />
     </g>
-
     <g class="s-torso-group">
       <rect class="s-svg-shirt" x="33" y="45" width="34" height="32" rx="6" />
     </g>
-
     <g class="s-arm-left">
       <rect class="s-svg-skin" x="25" y="47" width="9" height="26" rx="4" />
     </g>
-
     <g class="s-arm-right">
       <rect class="s-svg-skin" x="66" y="47" width="9" height="26" rx="4" />
     </g>
-
     <g class="s-head-group">
       <circle class="s-svg-skin" cx="50" cy="32" r="20" />
       <circle id="${idPrefix}-blush-l" cx="40" cy="36" r="3" fill="#ff7675" opacity="0" />
       <circle id="${idPrefix}-blush-r" cx="60" cy="36" r="3" fill="#ff7675" opacity="0" />
-
       <g id="${idPrefix}-expr-normal" class="s-expression">
         <circle cx="42" cy="30" r="2.5" fill="#2d3436" />
         <circle cx="58" cy="30" r="2.5" fill="#2d3436" />
         <path class="s-eyelash" d="M 39 27 L 41 28 M 61 27 L 59 28" stroke="#2d3436" stroke-width="1.5" display="none" />
         <path d="M 46 37 Q 50 40 54 37" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
       </g>
-
       <g id="${idPrefix}-expr-laugh" class="s-expression" style="display:none;">
         <path d="M 39 29 Q 42 26 45 29 M 55 29 Q 58 26 61 29" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
         <path d="M 44 36 Q 50 42 56 36" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
       </g>
-
       <g id="${idPrefix}-expr-angry" class="s-expression" style="display:none;">
         <path d="M 38 26 L 46 29 M 62 26 L 54 29" stroke="#2d3436" stroke-width="2.5" stroke-linecap="round" />
         <circle cx="42" cy="32" r="2" fill="#2d3436" />
         <circle cx="58" cy="32" r="2" fill="#2d3436" />
         <path d="M 45 39 Q 50 35 55 39" stroke="#2d3436" stroke-width="2.5" fill="none" stroke-linecap="round" />
       </g>
-
       <g id="${idPrefix}-expr-cry" class="s-expression" style="display:none;">
         <path d="M 38 29 Q 42 26 46 29 M 54 29 Q 58 26 62 29" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
         <path d="M 46 38 Q 50 35 54 38" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
       </g>
-
       <g id="${idPrefix}-expr-shock" class="s-expression" style="display:none;">
         <circle cx="42" cy="30" r="3" fill="#2d3436" />
         <circle cx="58" cy="30" r="3" fill="#2d3436" />
         <ellipse cx="50" cy="38" rx="3" ry="4" fill="#2d3436" />
       </g>
-
       <g id="${idPrefix}-expr-sleep" class="s-expression" style="display:none;">
         <path d="M 39 31 Q 42 33 45 31 M 55 31 Q 58 33 61 31" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
         <path d="M 47 38 Q 50 39 53 38" stroke="#2d3436" stroke-width="1.5" fill="none" stroke-linecap="round" />
       </g>
-
       <g id="${idPrefix}-hair-group" class="s-svg-hair"></g>
     </g>
   </svg>
@@ -798,6 +798,36 @@ function sInjectStyle() {
   cursor:pointer;
   z-index:1300;
   box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+
+#sanalika-root #sanalika-presence{
+  position:absolute;
+  top:calc(14px + env(safe-area-inset-top));
+  left:16px;
+  z-index:1250;
+  display:none;
+  align-items:center;
+  gap:7px;
+  background:rgba(255,255,255,.92);
+  color:#2c3e50;
+  font-size:12px;
+  font-weight:800;
+  padding:8px 14px;
+  border-radius:999px;
+  box-shadow:0 8px 20px rgba(0,0,0,.2);
+}
+#sanalika-root #sanalika-presence.on{ display:flex; }
+#sanalika-root #sanalika-presence .pdot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#2ecc71;
+  box-shadow:0 0 8px #2ecc71;
+  animation:sPulseDot 1.6s infinite;
+}
+@keyframes sPulseDot{
+  0%,100%{ transform:scale(1); opacity:1; }
+  50%{ transform:scale(.7); opacity:.6; }
 }
 
 #sanalika-root #sanalika-character-creator{
@@ -960,6 +990,14 @@ function sInjectStyle() {
 #sanalika-root .s-npc-wrapper:hover .s-avatar-svg{
   filter:drop-shadow(0 0 12px rgba(255,255,255,.9));
   cursor:pointer;
+}
+
+#sanalika-root .s-partner-wrapper .s-avatar-svg{
+  filter:drop-shadow(0 0 10px rgba(255,110,140,.8));
+}
+#sanalika-root .s-partner-wrapper .s-nametag{
+  background:rgba(232,116,97,.92);
+  border-color:rgba(255,255,255,.55);
 }
 
 #sanalika-root .s-nametag{
@@ -1316,6 +1354,7 @@ function sBuild() {
   root.id = 'sanalika-root';
   root.innerHTML = `
     <button class="s-close" type="button" onclick="sClose()" aria-label="Kapat">×</button>
+    <div id="sanalika-presence"></div>
 
     <div id="sanalika-character-creator">
       <div class="s-creator-card">
@@ -1451,14 +1490,28 @@ window.sUpdateStyle = function () {
 window.sClose = function () {
   const root = document.getElementById('sanalika-root');
   if (root) root.classList.remove('open');
-  sCloseBubble();
+  sSyncStop();
 };
 
 window.sOpen = function () {
   sBuild();
+
+  if (sPData.name === 'Oyuncu') {
+    try {
+      const mn = myName();
+      if (mn && mn !== 'Ben') {
+        sPData.name = mn;
+        const inp = document.getElementById('s-username');
+        if (inp) inp.value = mn;
+      }
+    } catch (e) {}
+  }
+
   const root = document.getElementById('sanalika-root');
   if (root) root.classList.add('open');
   sUpdatePreview();
+
+  if (sWorldEntered) sSyncStart();
 };
 
 window.sEnterGameWorld = function () {
@@ -1475,15 +1528,296 @@ window.sEnterGameWorld = function () {
     const py = Math.max(210, Math.min(window.innerHeight - 130, window.innerHeight / 2 + 50));
 
     sPlayerRef = sCreateCharacterInWorld('s-player', sPData, px, py, false);
+
+    const origWalk = sPlayerRef.walkTo.bind(sPlayerRef);
+    sPlayerRef.walkTo = function (tx, ty, cb) {
+      origWalk(tx, ty, cb);
+      sWritePos();
+    };
+
     sCreateDefaultNPCs();
   }
+
+  sWorldEntered = true;
+  sSyncStart();
 };
 
 window.sPlayEmote = function (type) {
-  if (sPlayerRef) sPlayerRef.playEmote(type);
+  if (sPlayerRef) {
+    sPlayerRef.playEmote(type);
+    sWriteEmote(type);
+  }
 };
 
-function sCreateCharacterInWorld(id, data, x, y, isNPC = false) {
+/* -------------------------------------------------- */
+/* ONLINE SENKRON (Firestore)                         */
+/* -------------------------------------------------- */
+
+function sSyncStart() {
+  if (!CODE) return;
+
+  sInWorld = true;
+  sSentReqTs = 0;
+  sSentHandled = true;
+  sShownReqTs = 0;
+  sCurrentReq = null;
+
+  sWriteFullState();
+
+  if (sHeartbeat) clearInterval(sHeartbeat);
+  sHeartbeat = setInterval(() => {
+    if (sInWorld && CODE) {
+      updateDoc(sanDoc(), { ['p' + ME + '.seen']: Date.now() }).catch(() => {});
+    }
+  }, 4000);
+
+  if (sStaleTimer) clearInterval(sStaleTimer);
+  sStaleTimer = setInterval(() => {
+    const pc = sCharacters['s-partner'];
+    if (pc && pc._seen && Date.now() - pc._seen > 15000) {
+      pc.el.remove();
+      delete sCharacters['s-partner'];
+      sCloseBubble();
+      sPresenceUI(null);
+      toast('Sevgilin bağlantı koptu');
+    }
+  }, 5000);
+
+  if (!sSyncUnsub) {
+    sSyncUnsub = onSnapshot(
+      sanDoc(),
+      (snap) => sApplySnapshot(snap.exists() ? snap.data() : null),
+      (err) => console.warn('sanalika sync', err)
+    );
+  }
+}
+
+function sSyncStop() {
+  sInWorld = false;
+
+  if (sHeartbeat) { clearInterval(sHeartbeat); sHeartbeat = null; }
+  if (sStaleTimer) { clearInterval(sStaleTimer); sStaleTimer = null; }
+  if (sSyncUnsub) { sSyncUnsub(); sSyncUnsub = null; }
+
+  if (CODE) {
+    updateDoc(sanDoc(), { ['p' + ME + '.on']: false }).catch(() => {});
+  }
+
+  const pc = sCharacters['s-partner'];
+  if (pc) { pc.el.remove(); delete sCharacters['s-partner']; }
+
+  sCloseBubble();
+  sPresenceUI(null);
+  sCurrentReq = null;
+}
+
+function sWriteFullState() {
+  if (!CODE || !sPlayerRef) return;
+  const st = {
+    on: true,
+    x: Math.round(sPlayerRef.x),
+    y: Math.round(sPlayerRef.y),
+    name: sPData.name,
+    gender: sPData.gender,
+    hair: sPData.hair,
+    colors: { ...sPData.colors },
+    emote: '',
+    emoteTs: 0,
+    seen: Date.now()
+  };
+  setDoc(sanDoc(), { ['p' + ME]: st }, { merge: true }).catch(() => {});
+}
+
+function sWritePos() {
+  if (!sInWorld || !CODE || !sPlayerRef) return;
+  updateDoc(sanDoc(), {
+    ['p' + ME + '.x']: Math.round(sPlayerRef.x),
+    ['p' + ME + '.y']: Math.round(sPlayerRef.y),
+    ['p' + ME + '.seen']: Date.now()
+  }).catch(() => {});
+}
+
+function sWriteEmote(type) {
+  if (!sInWorld || !CODE) return;
+  updateDoc(sanDoc(), {
+    ['p' + ME + '.emote']: type,
+    ['p' + ME + '.emoteTs']: Date.now()
+  }).catch(() => {});
+}
+
+function sPresenceUI(other) {
+  const pres = document.getElementById('sanalika-presence');
+  if (!pres) return;
+  if (other) {
+    pres.innerHTML = '<span class="pdot"></span>' + esc(other.name || 'Sevgilin') + ' burada 💞';
+    pres.classList.add('on');
+  } else {
+    pres.classList.remove('on');
+  }
+}
+
+function sApplySnapshot(data) {
+  if (!data || !sInWorld) return;
+
+  const other = data['p' + (1 - ME)];
+  const fresh = !!(other && other.on && other.seen && (Date.now() - other.seen < 15000));
+
+  if (fresh) {
+    const lookHash = JSON.stringify([other.name, other.gender, other.hair, other.colors]);
+    let pc = sCharacters['s-partner'];
+
+    if (pc && pc._lookHash !== lookHash) {
+      pc.el.remove();
+      delete sCharacters['s-partner'];
+      pc = null;
+    }
+
+    if (!pc) {
+      const px = other.x != null ? other.x : window.innerWidth / 2;
+      const py = other.y != null ? other.y : window.innerHeight / 2 + 50;
+
+      pc = sCreateCharacterInWorld('s-partner', {
+        name: other.name || 'Sevgilim',
+        gender: other.gender || 'female',
+        hair: other.hair || 'style-2',
+        colors: other.colors || { skin: '#ffdbac', hair: '#4a2e00', shirt: '#e84393', pants: '#2c3e50', shoes: '#ffffff' }
+      }, px, py, true);
+
+      pc._lookHash = lookHash;
+      pc._remoteEmoteTs = other.emoteTs || 0;
+      pc._seen = other.seen;
+
+      if (other.emote && other.emoteTs && (Date.now() - other.emoteTs < 8000)) {
+        pc.playEmote(other.emote);
+      }
+
+      toast((other.name || 'Sevgilin') + ' dünyada! 💞');
+    } else {
+      pc._seen = other.seen;
+
+      if (other.x != null && (Math.abs(other.x - pc.x) > 4 || Math.abs(other.y - pc.y) > 4)) {
+        pc.walkTo(other.x, other.y);
+      }
+
+      if (other.emote && other.emoteTs && other.emoteTs !== pc._remoteEmoteTs && (Date.now() - other.emoteTs < 8000)) {
+        pc._remoteEmoteTs = other.emoteTs;
+        pc.playEmote(other.emote);
+      }
+    }
+
+    sPresenceUI(other);
+  } else {
+    const pc = sCharacters['s-partner'];
+    if (pc) {
+      pc.el.remove();
+      delete sCharacters['s-partner'];
+      sCloseBubble();
+      toast('Sevgilin dünyadan ayrıldı');
+    }
+    sPresenceUI(null);
+  }
+
+  sHandleReq(data.req);
+}
+
+/* --- istek akışı (çiftler arası) --- */
+
+function sHandleReq(req) {
+  if (!req || !req.ts || !sInWorld) return;
+
+  if (req.to === ME && req.status === 'pending' && req.ts !== sShownReqTs && (Date.now() - req.ts < 30000)) {
+    sShownReqTs = req.ts;
+    sCurrentReq = req;
+    sShowIncomingReq(req);
+  }
+
+  if (req.from === ME && req.status !== 'pending' && req.ts === sSentReqTs && !sSentHandled) {
+    sSentHandled = true;
+    sCloseBubble();
+    if (req.status === 'accepted') {
+      sExecuteAccepted(req.type);
+    } else {
+      if (sPlayerRef) sPlayerRef.playEmote('cry');
+      sWriteEmote('cry');
+    }
+  }
+}
+
+function sShowIncomingReq(req) {
+  const partner = sCharacters['s-partner'];
+  if (!partner) return;
+
+  sCloseBubble();
+
+  const world = document.getElementById('sanalika-game-world');
+  if (!world) return;
+
+  const pos = sMenuPos(partner);
+  const menu = document.createElement('div');
+  menu.className = 's-request-bubble';
+  menu.style.left = pos.left + 'px';
+  menu.style.top = pos.top + 'px';
+
+  const actionTr = req.type === 'hug' ? 'sarılmak' : 'dans etmek';
+  const fromName = req.fromName || 'Sevgilin';
+
+  menu.innerHTML = `
+    <span>${esc(fromName)} seninle ${actionTr} istiyor! 💌</span>
+    <div class="s-req-buttons">
+      <button type="button" class="s-req-btn s-btn-accept" onclick="sAnswerReq(true)">✓ Kabul Et</button>
+      <button type="button" class="s-req-btn s-btn-reject" onclick="sAnswerReq(false)">✗ Reddet</button>
+    </div>
+  `;
+
+  world.appendChild(menu);
+  sActiveUIBubble = menu;
+}
+
+window.sAnswerReq = async function (accept) {
+  sCloseBubble();
+
+  const type = sCurrentReq ? sCurrentReq.type : 'hug';
+
+  try {
+    await updateDoc(sanDoc(), {
+      'req.status': accept ? 'accepted' : 'rejected',
+      'req.ansTs': Date.now()
+    });
+  } catch (e) { console.warn(e); }
+
+  if (accept) {
+    sExecuteAccepted(type);
+  } else {
+    if (sPlayerRef) sPlayerRef.playEmote('angry');
+    sWriteEmote('angry');
+  }
+};
+
+function sExecuteAccepted(type) {
+  const partner = sCharacters['s-partner'];
+  if (!partner || !sPlayerRef) return;
+
+  if (type === 'hug') {
+    const isLeft = sPlayerRef.x < partner.x;
+    const hugX = isLeft ? partner.x - 25 : partner.x + 25;
+
+    sPlayerRef.walkTo(hugX, partner.y, () => {
+      sPlayerRef.playEmote('hug');
+      sWriteEmote('hug');
+      sSpawnParticles(partner, 's-heart-particle', '❤️', 5, -70);
+    });
+  } else if (type === 'dance') {
+    sPlayerRef.playEmote('dance');
+    sWriteEmote('dance');
+    sSpawnParticles(sPlayerRef, 's-heart-particle', '🎵', 3, -80);
+  }
+}
+
+/* -------------------------------------------------- */
+/* DÜNYA / KARAKTERLER                                */
+/* -------------------------------------------------- */
+
+function sCreateCharacterInWorld(id, data, x, y, interactive = false) {
   const world = document.getElementById('sanalika-game-world');
   if (!world) return null;
 
@@ -1493,7 +1827,9 @@ function sCreateCharacterInWorld(id, data, x, y, isNPC = false) {
 
   const wrap = document.createElement('div');
   wrap.id = id;
-  wrap.className = 's-character-wrapper' + (isNPC ? ' s-npc-wrapper' : '');
+  wrap.className = 's-character-wrapper' +
+    (interactive ? ' s-npc-wrapper' : '') +
+    (id === 's-partner' ? ' s-partner-wrapper' : '');
   wrap.style.left = x + 'px';
   wrap.style.top = y + 'px';
   wrap.style.zIndex = Math.floor(y);
@@ -1615,7 +1951,7 @@ function sCreateCharacterInWorld(id, data, x, y, isNPC = false) {
     }
   };
 
-  if (isNPC) {
+  if (interactive) {
     wrap.addEventListener('click', (e) => {
       e.stopPropagation();
       sCloseBubble();
@@ -1697,7 +2033,7 @@ function sOpenInteractionMenu(targetObj) {
   menu.style.top = pos.top + 'px';
 
   menu.innerHTML = `
-    <span>${targetObj.name} ile etkileşime gir:</span>
+    <span>${esc(targetObj.name)} ile etkileşime gir:</span>
     <div class="s-req-buttons">
       <button type="button" class="s-req-btn s-btn-hug" onclick="sSendActionRequest('${targetObj.id}', 'hug', event)">🫂 Sarıl</button>
       <button type="button" class="s-req-btn s-btn-dance" onclick="sSendActionRequest('${targetObj.id}', 'dance', event)">💃 Dans Et</button>
@@ -1715,6 +2051,30 @@ window.sSendActionRequest = function (targetId, actionType, e) {
   const targetObj = sCharacters[targetId];
   if (!targetObj || !sPlayerRef) return;
 
+  /* ---- SEVGİLİ → Firestore üzerinden gerçek istek ---- */
+  if (targetId === 's-partner') {
+    const isLeft = sPlayerRef.x < targetObj.x;
+    sPlayerRef.walkTo(isLeft ? targetObj.x - 55 : targetObj.x + 55, targetObj.y);
+
+    sSentReqTs = Date.now();
+    sSentHandled = false;
+
+    updateDoc(sanDoc(), {
+      req: {
+        from: ME,
+        to: 1 - ME,
+        type: actionType,
+        ts: sSentReqTs,
+        status: 'pending',
+        fromName: sPData.name
+      }
+    }).catch(() => {});
+
+    toast('İstek gönderildi 💌');
+    return;
+  }
+
+  /* ---- NPC → yerel istek ---- */
   const isLeft = sPlayerRef.x < targetObj.x;
   const waitX = isLeft ? targetObj.x - 55 : targetObj.x + 55;
 
@@ -1734,7 +2094,7 @@ window.sSendActionRequest = function (targetId, actionType, e) {
     menu.style.top = pos.top + 'px';
 
     menu.innerHTML = `
-      <span>${sPlayerRef.name} seninle ${actionTr} istiyor!</span>
+      <span>${esc(sPlayerRef.name)} seninle ${actionTr} istiyor!</span>
       <div class="s-req-buttons">
         <button type="button" class="s-req-btn s-btn-accept" onclick="sProcessActionResponse('${targetId}', '${actionType}', true, event)">✓ Kabul Et</button>
         <button type="button" class="s-req-btn s-btn-reject" onclick="sProcessActionResponse('${targetId}', '${actionType}', false, event)">✗ Reddet</button>
