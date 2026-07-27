@@ -2636,6 +2636,9 @@ window.delNote = id => deleteDoc(doc(db,'couples',CODE,'notes',id));
 function renderChat(){
   const w=$('chatWrap');
   if(!DB.chat.length){ w.innerHTML='<div class="empty">Birbirinize mesaj gönderin</div>'; return; }
+   const _nc=DB.chat.length, _pc=(window._chatPrevCount==null?_nc:window._chatPrevCount);
+  if(_pc>0 && _nc>_pc){ for(let i=_pc;i<_nc;i++){ if(DB.chat[i].authorIdx!==ME){ window.sfxReceive&&window.sfxReceive(); break; } } }
+  window._chatPrevCount=_nc;
   w.innerHTML=DB.chat.map(m=>`<div class="bubble ${m.authorIdx===ME?'right':'left'}"><div class="who">${esc(m.author)}</div>${esc(m.text)}</div>`).join('');
   w.scrollTop=w.scrollHeight;
 }
@@ -2643,6 +2646,7 @@ let _chatLock=0;
 window.addChat = async ()=>{ const now=Date.now(); if(now-_chatLock<1200) return; _chatLock=now; const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
   await addDoc(col('chat'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() });
   notifyOthers(myName(), t);
+    window.sfxSend && window.sfxSend();
 };
 
 function compress(file, maxW, targetBytes){
@@ -2808,6 +2812,84 @@ setInterval(()=>{
 </script>
 <script>
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+  
+</script>
+<!-- ===== MESAJ SESLERİ: gerçek iMessage dosyalarını çalar ===== -->
+<script>
+(function(){
+  var SEND_FILE = 'snd-send.mp3';     // gönderme sesi (uzantın farklıysa burayı değiştir)
+  var RECV_FILE = 'snd-receive.mp3';  // gelme sesi   (uzantın farklıysa burayı değiştir)
+  var sendA=null, recvA=null, unlocked=false;
+  function mk(src){ try{ var a=new Audio(src); a.preload='auto'; return a; }catch(e){ return null; } }
+  function ensure(){ if(!sendA){ sendA=mk(SEND_FILE); recvA=mk(RECV_FILE); } }
+  function unlock(){
+    if(unlocked) return; ensure(); unlocked=true;
+    [sendA,recvA].forEach(function(a){
+      if(!a) return; a.muted=true;
+      var p=a.play();
+      if(p&&p.then){ p.then(function(){ try{a.pause();a.currentTime=0;}catch(e){} a.muted=false; }).catch(function(){ a.muted=false; }); }
+      else { a.muted=false; }
+    });
+  }
+  ['pointerdown','touchstart','keydown','click'].forEach(function(ev){ window.addEventListener(ev, unlock, {once:true, passive:true}); });
+  function play(a){ if(!a) return; try{ a.currentTime=0; a.muted=false; var p=a.play(); if(p&&p.catch) p.catch(function(){}); }catch(e){} }
+  window.sfxSend    = function(){ ensure(); play(sendA); };
+  window.sfxReceive = function(){ ensure(); play(recvA); };
+})();
+</script>
+<!-- ===== SOHBET: en alttan başla + aşağı-in butonu ===== -->
+<style>
+  .chat-tobottom-wrap{ position:sticky; bottom:16px; text-align:center; pointer-events:none; z-index:6; margin-top:-44px; }
+  .chat-tobottom{
+    pointer-events:auto; width:44px; height:44px; border-radius:50%; border:none; cursor:pointer;
+    background:var(--krem); color:var(--mercan); box-shadow:0 8px 22px rgba(80,40,60,.30);
+    display:inline-flex; align-items:center; justify-content:center; transition:transform .12s ease;
+  }
+  .chat-tobottom:active{ transform:scale(.9); }
+  .chat-tobottom svg{ display:block; }
+</style>
+<script type="module">
+(function(){
+  const sec  = document.querySelector('[data-screen="chat"]');
+  const wrap = document.getElementById('chatWrap');
+  if(!sec || !wrap) return;
+  const ESH = 48; /* "altta say" eşiği (px) */
+
+  /* aşağı-in butonunu oluştur */
+  const box = document.createElement('div');
+  box.className = 'chat-tobottom-wrap';
+  box.style.display = 'none';
+  box.innerHTML = '<button type="button" class="chat-tobottom" aria-label="En yeni mesaja in"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>';
+  sec.appendChild(box);
+  const btn = box.querySelector('.chat-tobottom');
+
+  let userAtBottom = true;
+  const atBottom = () => (sec.scrollHeight - sec.scrollTop - sec.clientHeight) <= ESH;
+  const showBtn  = (on) => { box.style.display = on ? 'block' : 'none'; };
+  const toBottom = () => { sec.scrollTop = sec.scrollHeight; };
+
+  btn.addEventListener('click', () => { toBottom(); });
+
+  /* kullanıcı kaydırdıkça: alttaysa butonu gizle, değilse göster */
+  sec.addEventListener('scroll', () => { userAtBottom = atBottom(); showBtn(!userAtBottom); }, { passive:true });
+
+  /* yeni mesaj gelince: alttaysan otomatik in, değilsen sadece butonu göster */
+  new MutationObserver(() => { if(userAtBottom) toBottom(); else showBtn(true); })
+    .observe(wrap, { childList:true });
+
+  /* sohbete her girişte en alta ışınla */
+  if(typeof window.go === 'function'){
+    const orig = window.go;
+    window.go = function(name){
+      const r = orig.apply(this, arguments);
+      if(name === 'chat'){
+        userAtBottom = true; showBtn(false);
+        requestAnimationFrame(() => requestAnimationFrame(() => { toBottom(); userAtBottom = true; }));
+      }
+      return r;
+    };
+  }
+})();
 </script>
 </body>
 </html>
