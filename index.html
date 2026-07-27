@@ -667,6 +667,7 @@ function notifyOthers(title, body){
   }catch(e){}
 }
 
+/* ===== CHIBI SAHNESI (yeşil ekran / chroma key) ===== */
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
   const s=document.createElement('style'); s.id='av-css';
@@ -698,8 +699,10 @@ function avatarStyleOnce(){
   #av-scene .av-poses{ position:absolute; inset:0; display:grid; place-items:center; transform-origin:50% 97%; animation:av-breathe 3.6s ease-in-out infinite; }
   #av-scene .av-actor:nth-child(2) .av-poses{ animation-delay:-1.8s; }
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
-  #av-scene .av-idle{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .2s ease; pointer-events:none; mix-blend-mode:multiply; z-index:1; }
-  #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
+  #av-scene .av-idle{ position:absolute; left:-10000px; top:0; width:2px; height:2px; opacity:0 !important; pointer-events:none; }
+  #av-scene .av-vid{ position:absolute; left:-10000px; top:0; width:2px; height:2px; opacity:0 !important; pointer-events:none; }
+  #av-scene .av-idle-cv{ position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .2s ease; pointer-events:none; z-index:1; }
+  #av-scene .av-vid-cv{ position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .12s ease; pointer-events:none; z-index:2; }
   #av-scene .av-motion{ position:absolute; top:42%; width:14px; height:34px; pointer-events:none; opacity:.32; transition:opacity .2s ease; }
   #av-scene .av-motion.l{ left:-2%; } #av-scene .av-motion.r{ right:-2%; transform:scaleX(-1); }
   #av-scene .av-motion svg{ width:100%; height:100%; display:block; }
@@ -729,6 +732,41 @@ const HEART_RED="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/200
 const HEART_PINK="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23f3a6b8'/></svg>\")";
 const MOTION_SVG='<svg viewBox="0 0 14 34" fill="none" stroke="#caa9a0" stroke-width="2.4" stroke-linecap="round"><path d="M11 4 C5 8 5 13 11 17"/><path d="M12 17 C6 21 6 26 12 30"/></svg>';
 const CHIBI_FACE='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f6a8b8" stroke-width="1.7"/><circle cx="9" cy="11" r="1.15" fill="#f6a8b8"/><circle cx="15" cy="11" r="1.15" fill="#f6a8b8"/><path d="M9 14.4c1 1.3 5 1.3 6 0" stroke="#f6a8b8" stroke-width="1.5" stroke-linecap="round"/></svg>';
+
+/* ---- yeşil silme motoru ---- */
+function drawChroma(video, canvas){
+  if(!canvas || !video) return;
+  const vw=video.videoWidth, vh=video.videoHeight;
+  if(!vw || !vh) return;
+  const H=Math.min(380, vh);
+  const W=Math.max(1, Math.round(vw*H/vh));
+  if(canvas.width!==W || canvas.height!==H){ canvas.width=W; canvas.height=H; }
+  const ctx = canvas._ctx || (canvas._ctx = canvas.getContext('2d', { willReadFrequently:true }));
+  ctx.drawImage(video, 0, 0, W, H);
+  let img;
+  try{ img = ctx.getImageData(0,0,W,H); }catch(e){ return; }
+  const d = img.data;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i], g=d[i+1], b=d[i+2];
+    const maxRB = r>b?r:b;
+    const diff = g - maxRB;
+    if(diff > 16){
+      if(diff > 42){ d[i+3]=0; }
+      else { const a = 1 - (diff-16)/(42-16); d[i+3] = (a*255)|0; d[i+1] = maxRB; }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function chromaTick(fig){
+  if(fig._raf) return;
+  const loop = ()=>{
+    fig._raf = requestAnimationFrame(loop);
+    if(fig._idleOn){ const iv=idleVidOf(fig); if(iv && iv.readyState>=2 && !iv.paused) drawChroma(iv, idleCvOf(fig)); }
+    if(fig._waveOn){ const vv=waveVidOf(fig); if(vv && vv.readyState>=2 && !vv.paused) drawChroma(vv, waveCvOf(fig)); }
+  };
+  fig._raf = requestAnimationFrame(loop);
+}
+function chromaStop(fig){ if(fig._raf){ cancelAnimationFrame(fig._raf); fig._raf=null; } }
 
 function setupAvatarFab(){
   avatarStyleOnce();
@@ -794,18 +832,25 @@ function setupAvatarFab(){
     </div>`;
   document.body.appendChild(sc);
   sc.querySelectorAll('.av-figure').forEach(fig=>{
+    fig._idleOn=false; fig._waveOn=false;
     if(!fig.querySelector('video.av-idle')){
       const idle=document.createElement('video'); idle.className='av-idle'; idle.src='chibi-idle.mp4';
       idle.muted=true; idle.loop=true; idle.playsInline=true; idle.preload='auto';
       idle.setAttribute('playsinline',''); idle.setAttribute('webkit-playsinline','');
       fig.appendChild(idle);
     }
+    if(!fig.querySelector('canvas.av-idle-cv')){
+      const ic=document.createElement('canvas'); ic.className='av-idle-cv'; fig.appendChild(ic);
+    }
     if(!fig.querySelector('video.av-vid')){
       const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=false; v.playsInline=true; v.preload='auto';
       v.setAttribute('webkit-playsinline',''); v.setAttribute('playsinline','');
-      v.addEventListener('ended', ()=>{ const v2=fig.querySelector('video.av-vid'); if(v2){ v2.style.opacity='0'; } resumeIdle(fig); });
+      v.addEventListener('ended', ()=>{ fig._waveOn=false; const wc=waveCvOf(fig); if(wc) wc.style.opacity='0'; resumeIdle(fig); });
       v.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi'); } });
       fig.appendChild(v);
+    }
+    if(!fig.querySelector('canvas.av-vid-cv')){
+      const wc=document.createElement('canvas'); wc.className='av-vid-cv'; fig.appendChild(wc);
     }
   });
   sc.querySelector('.av-x').addEventListener('click', closeScene);
@@ -814,25 +859,28 @@ function setupAvatarFab(){
 }
 function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-figure'):null; }
 function idleVidOf(fig){ return fig?fig.querySelector('video.av-idle'):null; }
-function resumeIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; const p=iv.play(); if(p&&p.then){ p.then(()=>{ iv.style.opacity='1'; }).catch(()=>{ iv.style.opacity='0'; }); } else { iv.style.opacity='1'; } }
-function pauseIdle(fig){ const iv=idleVidOf(fig); if(!iv) return; iv.style.opacity='0'; try{ iv.pause(); }catch(e){} }
+function waveVidOf(fig){ return fig?fig.querySelector('video.av-vid'):null; }
+function idleCvOf(fig){ return fig?fig.querySelector('canvas.av-idle-cv'):null; }
+function waveCvOf(fig){ return fig?fig.querySelector('canvas.av-vid-cv'):null; }
+function resumeIdle(fig){ const iv=idleVidOf(fig); const ic=idleCvOf(fig); if(!iv) return; fig._idleOn=true; if(ic) ic.style.opacity='1'; const p=iv.play(); if(p&&p.catch){ p.catch(()=>{}); } }
+function pauseIdle(fig){ const iv=idleVidOf(fig); const ic=idleCvOf(fig); if(!iv) return; fig._idleOn=false; if(ic) ic.style.opacity='0'; try{ iv.pause(); }catch(e){} }
 function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
 function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); h.style.setProperty('--dx',(Math.random()*90-45).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1400); } }
 function playWaveVideo(w){
   const fig=figOf(w); if(!fig) return;
   pauseIdle(fig);
-  const vid=fig.querySelector('video.av-vid');
+  const vid=waveVidOf(fig); const wc=waveCvOf(fig);
   if(!vid){ return; }
   if(vid.networkState===3 || vid.error){ return; }
-  vid.style.opacity='1';
+  fig._waveOn=true; if(wc) wc.style.opacity='1';
   try{ vid.currentTime=0; }catch(e){}
   vid.muted=false; try{ vid.volume=1; }catch(e){}
   let started=false;
   const onPlay=()=>{ started=true; vid.removeEventListener('playing', onPlay); };
   vid.addEventListener('playing', onPlay);
-  const tryPlay=(silent)=>{ if(silent) vid.muted=true; const p=vid.play(); if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started){ vid.style.opacity='0'; } }, 450); }); p.catch(()=>{ if(!silent) tryPlay(true); else { vid.style.opacity='0'; } }); } };
+  const tryPlay=(silent)=>{ if(silent) vid.muted=true; const p=vid.play(); if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started){ fig._waveOn=false; if(wc) wc.style.opacity='0'; } }, 450); }); p.catch(()=>{ if(!silent) tryPlay(true); else { fig._waveOn=false; if(wc) wc.style.opacity='0'; } }); } };
   tryPlay(false);
-  setTimeout(()=>{ if(!started){ vid.style.opacity='0'; } }, 1500);
+  setTimeout(()=>{ if(!started){ fig._waveOn=false; if(wc) wc.style.opacity='0'; } }, 1500);
 }
 function doMood(act, who, btnEl){
   if(btnEl){ btnEl.classList.remove('ping'); void btnEl.offsetWidth; btnEl.classList.add('ping'); setTimeout(()=>btnEl.classList.remove('ping'),650);
@@ -847,8 +895,8 @@ function doMood(act, who, btnEl){
   });
 }
 let _ambient=null;
-function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); sc.querySelectorAll('.av-figure').forEach(fig=>resumeIdle(fig)); }
-function closeScene(){ const sc=document.getElementById('av-scene'); if(sc){ sc.classList.remove('open'); sc.querySelectorAll('.av-figure').forEach(fig=>pauseIdle(fig)); } stopAmbient(); }
+function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); sc.querySelectorAll('.av-figure').forEach(fig=>{ resumeIdle(fig); chromaTick(fig); }); }
+function closeScene(){ const sc=document.getElementById('av-scene'); if(sc){ sc.classList.remove('open'); sc.querySelectorAll('.av-figure').forEach(fig=>{ pauseIdle(fig); chromaStop(fig); }); } stopAmbient(); }
 function startAmbient(sc){
   stopAmbient(); const sky=sc.querySelector('.av-sky');
   if(!sky.querySelector('.av-twinkle')){ for(let i=0;i<6;i++){ const t=document.createElement('div'); t.className='av-twinkle'; t.style.left=(8+Math.random()*84)+'%'; t.style.top=(10+Math.random()*40)+'%'; t.style.animationDelay=(-Math.random()*3.4)+'s'; const sz=4+Math.random()*5; t.style.width=sz+'px'; t.style.height=sz+'px'; sky.appendChild(t); } }
@@ -856,6 +904,7 @@ function startAmbient(sc){
   _ambient=setInterval(()=>{ if(!sc.classList.contains('open')) return; const p=document.createElement('div'); p.className='av-particle'; p.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); p.style.backgroundSize='contain'; p.style.backgroundRepeat='no-repeat'; const sz=10+Math.random()*12; p.style.width=sz+'px'; p.style.height=sz+'px'; p.style.left=(Math.random()*100)+'%'; p.style.bottom='-20px'; sky.appendChild(p); const dx=(Math.random()*60-30), dur=4400+Math.random()*2600; p.animate([{transform:'translate(0,0) scale(.6)',opacity:0},{opacity:.75,offset:.2},{transform:`translate(${dx}px,-88vh) scale(1)`,opacity:0}],{duration:dur,easing:'ease-out'}); setTimeout(()=>p.remove(),dur); }, 1000);
 }
 function stopAmbient(){ if(_ambient){ clearInterval(_ambient); _ambient=null; } }
+/* ===== /CHIBI SAHNESI ===== */
 
 async function registerPush(){
   setupAvatarFab();
