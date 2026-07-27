@@ -1,8 +1,5 @@
-/* Bizİki — service worker: her zaman YENİ sayfayı al + push bildirimleri */
-const CACHE = 'biziki-v6';
-
+const CACHE = 'biziki-v7';
 self.addEventListener('install', () => { self.skipWaiting(); });
-
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
@@ -10,8 +7,6 @@ self.addEventListener('activate', (event) => {
       .then(() => self.clients.claim())
   );
 });
-
-/* PUSH: bildirim gelince göster (pet / not / mesaj) */
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch (e) { data = { body: event.data && event.data.text ? event.data.text() : '' }; }
@@ -23,7 +18,6 @@ self.addEventListener('push', (event) => {
     data: { url: data.url || '/' }
   }));
 });
-
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const target = (event.notification.data && event.notification.data.url) || '/';
@@ -34,14 +28,11 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
-
-/* FETCH: html için network-first (yeniyi al), diğerleri için cache + arka planda güncelle */
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return; /* firebase / dış isteklere dokunma */
-
+  if (url.origin !== self.location.origin) return;
   const isDoc = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname === '/' || url.pathname.endsWith('/');
   if (isDoc) {
     event.respondWith(

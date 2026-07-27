@@ -4,24 +4,20 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Bizİki</title>
-
 <script>
   try{ if(localStorage.getItem('biziki_theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
 </script>
-
 <meta name="theme-color" content="#e87461" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Bizİki" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="apple-touch-icon" href="icon.png" />
-
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   *{ scrollbar-width:none; -ms-overflow-style:none; }
   *::-webkit-scrollbar{ width:0; height:0; display:none; }
   html,body{ overflow-x:hidden; }
-
   :root{
     --krem:#fdf6ec; --krem2:#fffaf2; --metin:#2c2630; --soluk:#8a7d86;
     --mercan:#e87461; --pembe:#f3a6b8; --lavanta:#b9a7e0;
@@ -43,7 +39,6 @@
   .screen{ flex:1; overflow-y:auto; padding:26px 22px 16px; display:none; }
   .screen.active{ display:block; animation:fade .35s ease; }
   @keyframes fade{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
-
   .overlay{ position:absolute; inset:0; padding:30px 26px; display:flex; flex-direction:column; justify-content:center; background:var(--phone-grad); overflow-y:auto; }
   #authScreen{ z-index:60; }
   #matchScreen{ z-index:50; }
@@ -58,13 +53,11 @@
   .code-box{ text-align:center; font-size:34px; font-weight:900; letter-spacing:5px; color:var(--mercan); background:var(--krem2); border-radius:16px; padding:14px; margin:10px 0; user-select:all; }
   .sync-dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:#bbb; margin-left:6px; vertical-align:middle; }
   .sync-dot.on{ background:#4caf50; box-shadow:0 0 8px #4caf50; }
-
   .auth-tabs{ display:flex; background:var(--krem2); border-radius:14px; padding:4px; margin-bottom:16px; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); }
   .auth-tabs button{ flex:1; border:none; background:none; padding:9px; border-radius:11px; font-weight:800; font-size:13px; cursor:pointer; color:var(--soluk); }
   .auth-tabs button.on{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); color:#fff; }
   .auth-err{ color:var(--mercan); font-size:12px; text-align:center; margin-top:8px; min-height:16px; font-weight:700; }
   .auth-hint{ font-size:11px; color:var(--soluk); text-align:center; margin-top:12px; line-height:1.5; }
-
   .app-title{ text-align:center; font-size:26px; font-weight:800; letter-spacing:.5px; margin-bottom:18px; }
   .couple{ display:flex; align-items:center; justify-content:center; gap:14px; }
   .person{ text-align:center; }
@@ -129,7 +122,6 @@
   .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#2c2630; color:#fff; padding:10px 18px; border-radius:14px; font-size:13px; font-weight:700; z-index:400; opacity:0; transition:.3s; pointer-events:none; max-width:88%; text-align:center; }
   :root[data-theme="dark"] .toast{ background:#f3eaf0; color:#2c2630; }
   .toast.show{ opacity:1; }
-
   .theme-row{ display:flex; align-items:center; justify-content:space-between; background:var(--krem); border-radius:18px; padding:14px 16px; box-shadow:var(--golge); margin:6px 0 16px; }
   .theme-row .tl{ display:flex; align-items:center; gap:10px; font-weight:700; font-size:14px; }
   .theme-row .tl .ic{ line-height:0; display:flex; }
@@ -140,12 +132,10 @@
   .switch input:checked + .slider{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); }
   .switch input:checked + .slider:before{ transform:translateX(22px); }
   .readonly-name{ background:var(--krem2); color:var(--soluk); border-radius:14px; padding:12px 14px; font-size:14px; font-weight:700; margin-bottom:10px; box-shadow:inset 0 0 0 1px rgba(128,128,128,.12); display:flex; align-items:center; gap:8px; }
-
   .prof-photo{ display:flex; gap:14px; align-items:center; margin-bottom:6px; }
   .pp-prev{ width:66px; height:66px; border-radius:50%; overflow:hidden; background:var(--krem2); display:flex; align-items:center; justify-content:center; box-shadow:var(--golge); flex:none; border:2px solid var(--border-soft); }
   .pp-prev img{ width:100%; height:100%; object-fit:cover; display:block; }
   .pp-prev svg{ width:34px; height:34px; stroke:var(--soluk); }
-
   .pet-mini{ background:var(--krem); border-radius:22px; padding:14px 16px; margin:18px 0 4px; box-shadow:var(--golge); cursor:pointer; border:1px solid var(--border-soft); display:flex; align-items:center; gap:14px; transition:transform .15s; }
   .pet-mini:active{ transform:scale(.98); }
   .pet-mini .pm-art{ width:58px; height:58px; flex:none; }
@@ -166,7 +156,6 @@
   .fill.e{ background:linear-gradient(90deg,#7bd3ff,#b9a7e0); }
   .fill.c{ background:linear-gradient(90deg,#9be8c4,#7bd3ff); }
   .bar .pct{ font-size:11px; font-weight:700; width:34px; text-align:right; color:var(--soluk); }
-
   .pet-bubble{ background:var(--krem2); color:var(--metin); border-radius:16px; padding:9px 16px; font-size:13px; font-weight:700; display:inline-block; margin:0 auto; box-shadow:var(--golge); position:relative; max-width:80%; }
   .pet-bubble:after{ content:""; position:absolute; bottom:-7px; left:50%; transform:translateX(-50%); border:7px solid transparent; border-top-color:var(--krem2); border-bottom:0; }
   .pet-stage{ text-align:center; padding:2px 0 2px; }
@@ -180,7 +169,6 @@
   .pet-act-log{ text-align:center; font-size:12px; color:var(--mercan); margin-top:10px; font-weight:800; min-height:16px; }
   .egg-art{ text-align:center; cursor:pointer; animation:eggwob 1.1s ease-in-out infinite; display:inline-block; line-height:0; }
   @keyframes eggwob{ 0%,100%{transform:rotate(-6deg);} 50%{transform:rotate(6deg);} }
-
   .pet-scene{ position:relative; height:236px; border-radius:24px; overflow:hidden; box-shadow:var(--golge); border:1px solid var(--border-soft); }
   .scene-bg{ position:absolute; inset:0; }
   .scene-home{ background:linear-gradient(180deg,#ffe9d6 0%,#ffd0bb 100%); }
@@ -207,7 +195,6 @@
   .drag-obj.dragging{ cursor:grabbing; z-index:30; }
   .drag-obj.obj-hint svg{ animation:objwiggle 2.2s ease-in-out infinite; }
   @keyframes objwiggle{0%,100%{transform:rotate(0) translateY(0)}50%{transform:rotate(5deg) translateY(-3px)}}
-
   .room-tabs{ display:flex; gap:7px; margin-top:14px; }
   .room-tab{ flex:1; background:var(--krem); border:1px solid var(--border-soft); border-radius:15px; padding:9px 2px 7px; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; box-shadow:var(--golge); opacity:.55; transition:.15s; }
   .room-tab.on{ opacity:1; background:linear-gradient(135deg,var(--mercan),var(--pembe)); border-color:transparent; }
@@ -215,7 +202,6 @@
   .room-tab.on svg{ stroke:#fff; }
   .rt-lbl{ font-size:9.5px; font-weight:800; color:var(--metin); }
   .room-tab.on .rt-lbl{ color:#fff; }
-
   .pet-breathe{ transform-box:view-box; transform-origin:100px 172px; animation:breathe 2.6s ease-in-out infinite; }
   .pet-head{ transform-box:view-box; transform-origin:100px 112px; animation:headtilt 3.6s ease-in-out infinite; }
   .pet-blink{ transform-box:fill-box; transform-origin:center; animation:blink 4.4s infinite; }
@@ -224,29 +210,25 @@
   @keyframes headtilt{ 0%,100%{transform:rotate(0deg);} 30%{transform:rotate(-3.5deg);} 70%{transform:rotate(3.5deg);} }
   @keyframes blink{ 0%,90%,100%{transform:scaleY(1);} 95%{transform:scaleY(0.1);} }
   @keyframes wag{ 0%,100%{transform:rotate(-9deg);} 50%{transform:rotate(15deg);} }
-
   .lightbox{ position:fixed; inset:0; background:rgba(20,10,20,.92); display:flex; align-items:center; justify-content:center; z-index:300; padding:20px; }
   .lightbox img{ max-width:94vw; max-height:90vh; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
   .lb-close{ position:absolute; top:18px; right:18px; width:44px; height:44px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-
   @media (max-width:480px){
     body{ padding:0; background:var(--phone-grad); }
     .phone{ width:100%; height:100vh; max-height:100vh; border-radius:0; border:none; box-shadow:none; }
   }
 </style>
-
 <script type="importmap">
 { "imports": {
   "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
   "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+  "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
   "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
 }}
 </script>
 </head>
 <body>
 <div class="phone">
-
   <div id="authScreen" class="overlay">
     <div class="match-logo"><svg width="56" height="56" viewBox="0 0 48 48"><path d="M20 40 C20 40 6 30 6 19 C6 13 10.5 9.5 15 9.5 C18 9.5 20 11.5 20 11.5 C20 11.5 22 9.5 25 9.5 C29.5 9.5 34 13 34 19 C34 30 20 40 20 40 Z" fill="var(--mercan)"/><path d="M37 22 C37 22 30 17 30 12 C30 9 32 7.5 34 7.5 C35.3 7.5 36.2 8.3 37 9 C37.8 8.3 38.7 7.5 40 7.5 C42 7.5 44 9 44 12 C44 17 37 22 37 22 Z" fill="var(--pembe)"/></svg></div>
     <div class="match-title">Bizİki</div>
@@ -265,7 +247,6 @@
       <div class="auth-hint">İlk kez mi? "Kayıt Ol"dan hesap aç.<br>Hesabın bulutta saklanır, kapatıp açsan da durur.</div>
     </div>
   </div>
-
   <div id="matchScreen" class="overlay hide">
     <div class="match-logo"><svg width="56" height="56" viewBox="0 0 48 48"><path d="M20 40 C20 40 6 30 6 19 C6 13 10.5 9.5 15 9.5 C18 9.5 20 11.5 20 11.5 C20 11.5 22 9.5 25 9.5 C29.5 9.5 34 13 34 19 C34 30 20 40 20 40 Z" fill="var(--mercan)"/><path d="M37 22 C37 22 30 17 30 12 C30 9 32 7.5 34 7.5 C35.3 7.5 36.2 8.3 37 9 C37.8 8.3 38.7 7.5 40 7.5 C42 7.5 44 9 44 12 C44 17 37 22 37 22 Z" fill="var(--pembe)"/></svg></div>
     <div class="match-title">Bizİki</div>
@@ -299,7 +280,6 @@
       <p id="joinErr" style="color:var(--mercan);font-size:12px;text-align:center;margin-top:8px;"></p>
     </div>
   </div>
-
   <section class="screen active" data-screen="home">
     <div class="app-title">Bizİki <span class="sync-dot" id="syncDot" title="senkron"></span></div>
     <div class="couple">
@@ -318,7 +298,6 @@
       <div class="card" onclick="go('qa')"><div class="ico"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--mercan)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5 h11 a2 2 0 0 1 2 2 v5 a2 2 0 0 1 -2 2 h-6 l-3.5 2.6 v-2.6 h-1.5 a2 2 0 0 1 -2 -2 v-5 a2 2 0 0 1 2 -2z"/><circle cx="8" cy="9.5" r="1" fill="var(--pembe)" stroke="none"/><circle cx="11" cy="9.5" r="1" fill="var(--pembe)" stroke="none"/><circle cx="14" cy="9.5" r="1" fill="var(--pembe)" stroke="none"/></svg></div><div class="lbl">Soru &amp; Cevap</div></div>
     </div>
   </section>
-
   <section class="screen" data-screen="notes">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Aşk Notları</h2></div>
     <p style="font-size:11px;color:var(--soluk);margin-bottom:10px;">Notlar kendi adınla gönderilir</p>
@@ -326,7 +305,6 @@
     <button class="btn" onclick="addNote()">Notu Gönder</button>
     <div id="noteList" style="margin-top:16px;"></div>
   </section>
-
   <section class="screen" data-screen="chat">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Sohbet</h2></div>
     <div class="chat-wrap" id="chatWrap"></div>
@@ -335,7 +313,6 @@
       <button class="btn" style="width:auto;margin:0;" onclick="addChat()">Gönder</button>
     </div>
   </section>
-
   <section class="screen" data-screen="album">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Fotoğraf Albümü</h2></div>
     <button class="btn" id="photoBtn" onclick="document.getElementById('fileInput').click()">Fotoğraf Ekle</button>
@@ -343,7 +320,6 @@
     <p style="font-size:11px;color:var(--soluk);text-align:center;margin:8px 0 14px;">Bir fotoğrafa basarak büyütebilirsin</p>
     <div class="photos" id="photoGrid"></div>
   </section>
-
   <section class="screen" data-screen="calendar">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Ortak Takvim</h2></div>
     <input type="text" id="evTitle" placeholder="Etkinlik (örn. Akşam yemeği)" />
@@ -351,18 +327,15 @@
     <button class="btn" onclick="addEvent()">Etkinlik Ekle</button>
     <div id="evList" style="margin-top:16px;"></div>
   </section>
-
   <section class="screen" data-screen="qa">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Soru &amp; Cevap</h2></div>
     <p style="font-size:12px;color:var(--soluk);margin-bottom:6px;">İkiniz de cevaplayın, sonra karşılaştırın</p>
     <div id="qaWrap"></div>
   </section>
-
   <section class="screen" data-screen="pet">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Bizim Pet</h2></div>
     <div id="petBody"></div>
   </section>
-
   <section class="screen" data-screen="profile">
     <div class="head"><button class="back" onclick="go('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12 15 19"/></svg></button><h2>Profil</h2></div>
     <div class="theme-row">
@@ -373,7 +346,6 @@
       <div class="tl"><span>Bildirimler</span></div>
       <button class="cp-use" id="notifBtn" onclick="askNotif()">Aç</button>
     </div>
-
     <label>Profil fotoğrafın</label>
     <div class="prof-photo">
       <div class="pp-prev" id="ppPrev"></div>
@@ -383,7 +355,6 @@
       </div>
     </div>
     <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(event)" />
-
     <label>Hesabın (e-posta)</label>
     <div class="readonly-name" id="profEmail">—</div>
     <label>Çift kodunuz (sevgiline vermek için)</label>
@@ -398,9 +369,8 @@
     <label>İlişkinin Başlangıç Tarihi</label><input type="date" id="setStart" />
     <button class="btn" onclick="saveSettings()" style="margin-top:14px;">Kaydet</button>
     <button class="btn ghost" onclick="logout()" style="margin-top:10px;">Çıkış Yap</button>
-        <button class="btn danger" onclick="deleteAccount()" style="margin-top:10px;">Hesabımı Kalıcı Olarak Sil</button>
+    <button class="btn danger" onclick="deleteAccount()" style="margin-top:10px;">Hesabımı Kalıcı Olarak Sil</button>
   </section>
-
   <nav class="tabbar hide" id="tabbar">
     <button class="tab on" data-tab="home" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M12 21s-7-4.5-9.5-9C1 9 2.5 5.5 6 5.5c2 0 3 1 4 2.5 1-1.5 2-2.5 4-2.5 3.5 0 5 3.5 3.5 6.5C19 16.5 12 21 12 21z"/></svg></button>
     <button class="tab" data-tab="chat" onclick="go('chat')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.5A8 8 0 1 1 21 12z"/></svg></button>
@@ -408,19 +378,15 @@
     <button class="tab" data-tab="profile" onclick="go('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></button>
   </nav>
 </div>
-
 <div class="lightbox hide" id="lightbox" onclick="closeLightbox()">
   <button class="lb-close" id="lbClose" onclick="closeLightbox()"></button>
   <img id="lbImg" alt="" />
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script type="module">
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence, deleteUser } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, updateDoc, getDocs, writeBatch } from 'firebase/firestore';
-
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 const firebaseConfig = {
@@ -447,7 +413,6 @@ let authMode = 'login';
 let tempFace = null, tempFaceT = null;
 let lastFace = null;
 let currentRoom = 'home';
-let chatInit=false, couponInit=false;
 const VAPID_KEY = "BKKc-sm9KQRQutkkfmF3_283o2Cr-GeoN9v_YzgbmP6YG4ERIWPcmUTGh4DgTo_ai6F-R-kq2nONCHFz8sCW3j8";
 const NOTIF_ICON='icon.png';
 
@@ -534,7 +499,7 @@ window.toggleTheme = function(on){
   applyThemeUI(on);
 };
 applyThemeUI(localStorage.getItem(THEME_KEY)==='dark');
-  updateNotifBtn();
+updateNotifBtn();
 
 window.setAuthMode = function(m){
   authMode=m;
@@ -574,7 +539,7 @@ onAuthStateChanged(auth, async user=>{
   UID = user.uid;
   try{
     const snap = await getDoc(userDoc(UID));
-        if(snap.exists() && snap.data().coupleCode){ CODE = snap.data().coupleCode; ME = snap.data().slot || 0; enterApp(); registerPush(); }
+    if(snap.exists() && snap.data().coupleCode){ CODE = snap.data().coupleCode; ME = snap.data().slot || 0; enterApp(); registerPush(); }
     else { showMatch(); }
   }catch(e){ console.error(e); showMatch(); }
 });
@@ -618,7 +583,7 @@ window.joinCouple = async ()=>{
 window.logout = async ()=>{
   if(confirm('Çıkış yapılsın mı? Hesabın ve verilerin bulutta güvende kalır, tekrar girersin.')){
     unsubs.forEach(u=>u()); unsubs=[];
-       if(UID){ await setDoc(userDoc(UID), { fcmToken:'' }, { merge:true }).catch(()=>{}); }
+    if(UID){ await setDoc(userDoc(UID), { fcmToken:'' }, { merge:true }).catch(()=>{}); }
     try{ await signOut(auth); }catch(e){}
   }
 };
@@ -637,11 +602,14 @@ function startSync(){
       data = Object.assign({}, data, { xp: fl.xp, level: fl.level });
       try{ updateDoc(petDoc(), { xp: fl.xp, level: fl.level }); }catch(e){}
     }
-    DB.pet = sanitizePet(DB.pet, data);
+    let pet = sanitizePet(DB.pet, data);
+    pet = Object.assign({}, pet, barFilter(pet));
+    DB.pet = pet;
+    writeBars(decay(DB.pet));
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
-    unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='chat') renderChat(); }));
+  unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='chat') renderChat(); }));
   unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
   unsubs.push(onSnapshot(query(col('events'), orderBy('date','asc')), snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='calendar') renderEvents(); }));
   unsubs.push(onSnapshot(doc(db,'couples',CODE,'meta','qa'), s=>{ DB.qa = s.exists()? (s.data().items||{}) : {}; if(current==='qa') renderQA(); }));
@@ -661,7 +629,7 @@ window.go = function(name){
   if(name==='pet'){ renderPet(); if(!localStorage.getItem('dragHint2')){ setTimeout(()=>toast('Yiyecek ve oyuncakları sürükleyip pet\'e götür. Uyku odasında pet\'i yatağa sürükle.'),450); localStorage.setItem('dragHint2','1'); } }
   if(name==='profile') fillProfile();
 };
-/* =================== BİLDİRİMLER =================== */
+
 function pushNotif(title, body){
   if(!('Notification' in window) || Notification.permission!=='granted') return;
   try{
@@ -698,13 +666,12 @@ function notifyOthers(title, body){
     }).catch(()=>{});
   }catch(e){}
 }
-/* ===== CHIBI SAHNESI (video-only) ===== */
+
 function avatarStyleOnce(){
   if(document.getElementById('av-css')) return;
   const s=document.createElement('style'); s.id='av-css';
   s.textContent=`
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
-
   #av-scene{ position:fixed; inset:0; z-index:9200; display:none; overflow:hidden; font-family:'Nunito',system-ui,sans-serif; }
   #av-scene.open{ display:block; }
   #av-scene .av-sky{ position:absolute; inset:0; background:linear-gradient(180deg,#fefdfb 0%, #fdf8f4 40%, #fbf2ee 72%, #f7ece6 100%); }
@@ -712,22 +679,17 @@ function avatarStyleOnce(){
   #av-scene .av-blob.b1{ left:-6%; bottom:14%; width:46%; height:30%; background:radial-gradient(closest-side,#cfe6c4,rgba(207,230,196,0)); }
   #av-scene .av-blob.b2{ right:-8%; bottom:16%; width:50%; height:32%; background:radial-gradient(closest-side,#f6d2dd,rgba(246,210,221,0)); }
   #av-scene .av-blob.b3{ left:34%; bottom:12%; width:38%; height:24%; background:radial-gradient(closest-side,#f3e0c4,rgba(243,224,196,0)); opacity:.45; }
-  #av-scene .av-floor{ position:absolute; left:-4%; right:-4%; bottom:0; height:24%; pointer-events:none;
-    background:linear-gradient(180deg, rgba(233,221,201,0) 0%, #e9ddc9 42%, #ddcfb6 100%);
-    -webkit-mask-image:linear-gradient(180deg, transparent, #000 38%); mask-image:linear-gradient(180deg, transparent, #000 38%); }
-  #av-scene .av-twinkle{ position:absolute; width:7px; height:7px; pointer-events:none; border-radius:50%;
-    background:radial-gradient(closest-side, rgba(255,170,190,.9), rgba(255,170,190,0)); animation:av-tw 3.4s ease-in-out infinite; }
+  #av-scene .av-floor{ position:absolute; left:-4%; right:-4%; bottom:0; height:24%; pointer-events:none; background:linear-gradient(180deg, rgba(233,221,201,0) 0%, #e9ddc9 42%, #ddcfb6 100%); -webkit-mask-image:linear-gradient(180deg, transparent, #000 38%); mask-image:linear-gradient(180deg, transparent, #000 38%); }
+  #av-scene .av-twinkle{ position:absolute; width:7px; height:7px; pointer-events:none; border-radius:50%; background:radial-gradient(closest-side, rgba(255,170,190,.9), rgba(255,170,190,0)); animation:av-tw 3.4s ease-in-out infinite; }
   @keyframes av-tw{ 0%,100%{opacity:.1; transform:scale(.6)} 50%{opacity:.8; transform:scale(1.15)} }
   #av-scene .av-particle{ position:absolute; pointer-events:none; will-change:transform,opacity; }
   #av-scene .av-cloud{ position:absolute; pointer-events:none; opacity:.4; background:radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0)); border-radius:50%; filter:blur(1px); animation:av-drift linear infinite; }
   @keyframes av-drift{ from{ transform:translateX(-30vw); } to{ transform:translateX(130vw); } }
-
   #av-scene .av-topbar{ position:absolute; top:0; left:0; right:0; z-index:6; text-align:center; padding:calc(18px + env(safe-area-inset-top)) 60px 8px; }
   #av-scene .av-title{ font-family:'Fredoka',sans-serif; font-weight:700; font-size:30px; color:#2c2630; letter-spacing:-.8px; line-height:.9; }
   #av-scene .av-titlesub{ display:inline-block; font-family:'Nunito',sans-serif; font-size:11px; font-weight:700; color:#a99aa2; margin-top:8px; letter-spacing:2px; }
   #av-scene .av-x{ position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; width:38px; height:38px; border-radius:50%; border:none; cursor:pointer; background:#ececec; color:#9a9a9a; font-size:20px; line-height:1; display:grid; place-items:center; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease; z-index:7; }
   #av-scene .av-x:hover{ transform:rotate(90deg) scale(1.08); background:#e2e2e2; color:#777; }
-
   #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:110px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:16px; padding:0 14px; }
   #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:auto; max-width:none; }
   #av-scene .av-figure{ position:relative; width:min(44vw, 42vh); aspect-ratio:1/1.2; z-index:1; }
@@ -738,30 +700,23 @@ function avatarStyleOnce(){
   @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
   #av-scene .av-idle{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .2s ease; pointer-events:none; mix-blend-mode:multiply; z-index:1; }
   #av-scene .av-vid{ position:absolute; inset:0; width:100%; height:100%; object-fit:contain; opacity:0; transition:opacity .12s ease; pointer-events:none; mix-blend-mode:multiply; z-index:2; }
-
   #av-scene .av-motion{ position:absolute; top:42%; width:14px; height:34px; pointer-events:none; opacity:.32; transition:opacity .2s ease; }
   #av-scene .av-motion.l{ left:-2%; } #av-scene .av-motion.r{ right:-2%; transform:scaleX(-1); }
   #av-scene .av-motion svg{ width:100%; height:100%; display:block; }
   #av-scene .av-figure.act .av-motion{ opacity:.85; animation:av-motpulse .5s ease-in-out 2; }
   @keyframes av-motpulse{ 0%,100%{opacity:.4} 50%{opacity:.95} }
-
   #av-scene .av-shadow{ width:54%; height:13px; margin-top:-6px; border-radius:50%; background:radial-gradient(closest-side, rgba(120,90,70,.22), rgba(120,90,70,0)); animation:av-shadowpulse 3.6s ease-in-out infinite; }
   #av-scene .av-actor:nth-child(2) .av-shadow{ animation-delay:-1.8s; }
   @keyframes av-shadowpulse{ 0%,100%{ transform:scaleX(1); opacity:.9; } 50%{ transform:scaleX(.84); opacity:.6; } }
-
   #av-scene .av-midheart{ position:absolute; left:50%; top:30%; transform:translateX(-50%); z-index:5; animation:av-beat 1.7s ease-in-out infinite; pointer-events:none; opacity:.85; }
   #av-scene .av-midheart svg{ width:26px; height:26px; }
   @keyframes av-beat{ 0%,100%{transform:translateX(-50%) scale(1)} 18%{transform:translateX(-50%) scale(1.22)} 36%{transform:translateX(-50%) scale(1)} 54%{transform:translateX(-50%) scale(1.12)} }
-
   #av-scene .av-float-heart{ position:absolute; bottom:40%; left:50%; width:18px; height:18px; z-index:5; pointer-events:none; background:no-repeat center/contain; animation:av-floatup 1.2s ease-out forwards; }
   @keyframes av-floatup{ 0%{opacity:0;transform:translate(-50%,0) scale(.4)} 20%{opacity:1} 100%{opacity:0;transform:translate(var(--dx),-130px) scale(1.2) rotate(var(--rot))} }
-
-  #av-scene .av-dock{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:7;
-    display:flex; gap:14px; background:#ffffff; border-radius:999px; padding:11px 18px; box-shadow:0 12px 32px rgba(170,90,110,.2); }
+  #av-scene .av-dock{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:7; display:flex; gap:14px; background:#ffffff; border-radius:999px; padding:11px 18px; box-shadow:0 12px 32px rgba(170,90,110,.2); }
   #av-scene .av-dock.pulse{ animation:av-dockpulse .4s ease; }
   @keyframes av-dockpulse{ 0%,100%{transform:translateX(-50%) scale(1)} 40%{transform:translateX(-50%) scale(1.04)} }
-  #av-scene .av-mood{ position:relative; width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; background:#fdf3ee;
-    display:grid; place-items:center; font-size:23px; line-height:1; transition:transform .16s cubic-bezier(.34,1.56,.64,1), background .16s ease; -webkit-tap-highlight-color:transparent; }
+  #av-scene .av-mood{ position:relative; width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; background:#fdf3ee; display:grid; place-items:center; font-size:23px; line-height:1; transition:transform .16s cubic-bezier(.34,1.56,.64,1), background .16s ease; -webkit-tap-highlight-color:transparent; }
   #av-scene .av-mood:hover{ transform:translateY(-3px); background:#fceae2; }
   #av-scene .av-mood:active{ transform:scale(.86); }
   #av-scene .av-mood.ping::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:2.5px solid rgba(255,176,84,.85); animation:av-ping .62s ease-out; pointer-events:none; }
@@ -781,7 +736,7 @@ function setupAvatarFab(){
     st.textContent='.av-chibi-tab{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;background:transparent;border:none;-webkit-tap-highlight-color:transparent;height:100%;min-height:46px;transition:transform .14s ease;} .av-chibi-tab:active{transform:scale(.82);} .av-chibi-ico{display:flex;align-items:center;justify-content:center;line-height:0;} .av-chibi-ico svg{width:24px;height:24px;display:block;}';
     document.head.appendChild(st); }
   function findBottomBar(){
-    const H=window.innerHeight; let best=null, bestScore=-1e9;
+    let best=null, bestScore=-1e9;
     document.querySelectorAll('body *').forEach(el=>{
       if(el.id==='av-scene'||el.id==='av-chibi-btn') return;
       const cs=getComputedStyle(el); if(cs.display==='none'||cs.visibility==='hidden') return;
@@ -814,7 +769,6 @@ function setupAvatarFab(){
   if(!document.getElementById('av-tabbar-fix')){ const fx=document.createElement('style'); fx.id='av-tabbar-fix';
     fx.textContent='#tabbar>*{flex:1 1 0 !important;min-width:0 !important;width:auto !important;}';
     document.head.appendChild(fx); }
-
   const sc=document.createElement('div'); sc.id='av-scene';
   const slotHTML=(who)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
       <div class="av-figure"><div class="av-poses"></div>
@@ -854,7 +808,6 @@ function setupAvatarFab(){
       fig.appendChild(v);
     }
   });
-
   sc.querySelector('.av-x').addEventListener('click', closeScene);
   sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act, null, b)));
   sc.querySelectorAll('.av-actor').forEach(a=> a.addEventListener('click', ()=> doMood('happy', a.dataset.who)));
@@ -903,7 +856,7 @@ function startAmbient(sc){
   _ambient=setInterval(()=>{ if(!sc.classList.contains('open')) return; const p=document.createElement('div'); p.className='av-particle'; p.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); p.style.backgroundSize='contain'; p.style.backgroundRepeat='no-repeat'; const sz=10+Math.random()*12; p.style.width=sz+'px'; p.style.height=sz+'px'; p.style.left=(Math.random()*100)+'%'; p.style.bottom='-20px'; sky.appendChild(p); const dx=(Math.random()*60-30), dur=4400+Math.random()*2600; p.animate([{transform:'translate(0,0) scale(.6)',opacity:0},{opacity:.75,offset:.2},{transform:`translate(${dx}px,-88vh) scale(1)`,opacity:0}],{duration:dur,easing:'ease-out'}); setTimeout(()=>p.remove(),dur); }, 1000);
 }
 function stopAmbient(){ if(_ambient){ clearInterval(_ambient); _ambient=null; } }
-/* ===== /CHIBI SAHNESI ===== */
+
 async function registerPush(){
   setupAvatarFab();
   if(!UID) return;
@@ -930,7 +883,6 @@ function renderHome(){
   $('nm2').textContent=has2 ? s.name2 : 'Bekliyor...'; $('nm2').className='nm'+(has2?'':' wait');
   $('av1').innerHTML = s.photo1 ? `<img src="${s.photo1}" alt="">` : esc((s.name1||'?')[0].toUpperCase());
   $('av2').innerHTML = (has2 && s.photo2) ? `<img src="${s.photo2}" alt="">` : (has2 ? esc(s.name2[0].toUpperCase()) : '?');
-
   if(s.start){
     const start=new Date(s.start+'T00:00:00'), today=new Date(); today.setHours(0,0,0,0);
     const diff=ymdDiff(start,today);
@@ -941,12 +893,10 @@ function renderHome(){
     parts.push(diff.d+' gün');
     $('dayCount').textContent = 'Birlikte ' + parts.join(' ');
     $('dayTotal').textContent = 'toplam ' + total + ' gün';
-
     const specials=[{lbl:'Yıl dönümü', days:daysUntilAnniv(start), color:'var(--mercan)'}];
     if(s.bday1){ const d=daysUntilBday(s.bday1); if(d!=null) specials.push({lbl:(s.name1||'')+"'nin doğum günü", days:d, color:'var(--pembe)'}); }
     if(s.bday2){ const d=daysUntilBday(s.bday2); if(d!=null) specials.push({lbl:(s.name2||'')+"'nin doğum günü", days:d, color:'var(--lavanta)'}); }
-    
-        const todayKey=new Date().toISOString().slice(0,10);
+    const todayKey=new Date().toISOString().slice(0,10);
     specials.forEach(sp=>{ if(sp.days===0 && localStorage.getItem('ev_notified_'+sp.lbl+todayKey)!=='1'){ localStorage.setItem('ev_notified_'+sp.lbl+todayKey,'1'); pushNotif('Özel gün', sp.lbl+' bugün!'); } });
     $('specialDays').innerHTML = specials.map(sp=>`<div class="sd${sp.days===0?' today':''}"><span class="sd-dot" style="background:${sp.color}"></span><span class="sd-lbl">${esc(sp.lbl)}</span><span class="sd-d">${sp.days===0?'Bugün!':sp.days+' gün'}</span></div>`).join('');
   } else {
@@ -955,7 +905,6 @@ function renderHome(){
   renderPetMini();
 }
 
-/* =================== PET ÇİZİM MOTORU =================== */
 const PAL = {
   cat:    { body:'#f4b183', shade:'#e89a64', ear:'#f4b183', earIn:'#f7c5d0', nose:'#e07a8c', cheek:'#f7a8bc' },
   dog:    { body:'#dca878', shade:'#c08a52', ear:'#b9824f', earIn:'#a06f42', nose:'#3a2a2a', cheek:'#f0a890' },
@@ -1031,11 +980,31 @@ function stageSize(lv){ if(lv<=2)return 116; if(lv<=4)return 132; return 150; }
 function xpForLevel(l){ return l*60; }
 function tickMs(pet){ const t=pet.lastTick; if(!t) return Date.now(); if(typeof t==='number') return t; if(t.toMillis) return t.toMillis(); if(t.seconds!=null) return t.seconds*1000; return Date.now(); }
 
-/* ===== XP/LEVEL ZEMİN KORUMASI (ezilmeye karşı) ===== */
 function petFloorKey(){ return 'biziki_petfloor_' + (CODE||'_'); }
 function readFloor(){ try{ const f=JSON.parse(localStorage.getItem(petFloorKey())); return (f&&typeof f==='object')?{xp:Number(f.xp)||0, level:Number(f.level)||1}:{xp:0,level:1}; }catch(e){ return {xp:0,level:1}; } }
 function writeFloor(xp, level){ try{ const f=readFloor(); const nx=Math.max(f.xp, Number(xp)||0); const nl=Math.max(f.level, Number(level)||1); if(nx!==f.xp||nl!==f.level){ localStorage.setItem(petFloorKey(), JSON.stringify({xp:nx,level:nl})); } }catch(e){} }
 function resetFloor(){ try{ localStorage.removeItem(petFloorKey()); }catch(e){} }
+
+function petBarsKey(){ return 'biziki_petbars_' + (CODE||'_'); }
+function careTKey(){ return 'biziki_caret_' + (CODE||'_'); }
+function readBars(){ try{ const b=JSON.parse(localStorage.getItem(petBarsKey())); return (b&&typeof b==='object')? b : null; }catch(e){ return null; } }
+function writeBars(c){ try{ localStorage.setItem(petBarsKey(), JSON.stringify({hunger:c.hunger,happy:c.happy,energy:c.energy,clean:c.clean})); }catch(e){} }
+function markCare(){ try{ localStorage.setItem(careTKey(), String(Date.now())); }catch(e){} }
+function recentCare(){ return (Date.now() - (Number(localStorage.getItem(careTKey()))||0)) < 60000; }
+function barFilter(cloudPet){
+  const stored = readBars();
+  const cv0 = {hunger:cloudPet.hunger,happy:cloudPet.happy,energy:cloudPet.energy,clean:cloudPet.clean};
+  if(!stored) return cv0;
+  const rc = recentCare();
+  const f = (cv, sv) => (!rc && sv!=null && (cv - sv) > 18) ? sv : cv;
+  return {
+    hunger: f(cv0.hunger, stored.hunger),
+    happy:  f(cv0.happy,  stored.happy),
+    energy: f(cv0.energy, stored.energy),
+    clean:  f(cv0.clean,  stored.clean)
+  };
+}
+function resetBars(){ try{ localStorage.removeItem(petBarsKey()); localStorage.removeItem(careTKey()); }catch(e){} }
 
 function sanitizePet(prev, raw){
   const base = (raw && typeof raw==='object') ? raw : {};
@@ -1101,21 +1070,23 @@ function say(text){
   b.textContent=text; b.style.visibility='visible';
   clearTimeout(window._bt); window._bt=setTimeout(()=>{ const bb=$('petBubble'); if(bb) bb.style.visibility='hidden'; }, 2200);
 }
-const TAP_LINES={ cat:['Miyav, seni seviyorum','Mırrr mırrr','Kucağına al beni','Oynayalım mı?'], dog:['Hav hav!','Seni çok seviyorum!','Top at bana!','Kuyruk sallıyorum'], rabbit:['Fışş fışş','Havuç var mı?','Zıplıyorum!','Yanaklarım yumuşacık'] };
 const CARE_LINES={ feed:['Mmm çok lezzetli!','Teşekkürler','Karnım doydu!'], play:['Çok eğlendim!','Bir daha bir daha!','Yoruldum ama değdi'], love:['Mırrr, seni seviyorum','En çok bunu seviyorum','Kalbim pıt pıt'], sleep:['Zzz... iyi geceler','Tatlı rüyalar','Dinlendim, teşekkürler'], bath:['Köpük köpük!','Pırıl pırıl oldum','Temizlik harika'] };
 
 function tickPet(){
   if(!DB.pet) return;
   const c=decay(DB.pet);
   updateBars($('petBars'), c);
+  writeBars(c);
   const md=mood(DB.pet,c);
   const mt=$('petMoodText'); if(mt) mt.textContent=md.text+' · '+stageName(DB.pet.level)+' '+SPECIES[DB.pet.species].name;
   if(!tempFace && md.face!==lastFace){ applyFace(md.face); lastFace=md.face; }
 }
 function tickMini(){
   if(!DB.pet) return;
+  const c=decay(DB.pet);
   const cont=document.querySelector('#petMini .bars');
-  if(cont) updateBars(cont, decay(DB.pet));
+  if(cont) updateBars(cont, c);
+  writeBars(c);
 }
 
 window.boopPet = function(){ care('love'); };
@@ -1171,7 +1142,6 @@ function renderScene(room){
   bindSceneDrag();
 }
 
-/* ===== SÜRÜKLE-BIRAK ===== */
 function centerOf(el){ const r=el.getBoundingClientRect(); return {x:r.left+r.width/2, y:r.top+r.height/2}; }
 function bindSceneDrag(){
   const scene=$('petScene'); if(!scene) return;
@@ -1272,7 +1242,7 @@ function renderPet(){
     <div class="room-tabs">${tabs}</div>
     <div class="pet-act-log" id="petLog"></div>
     <button class="btn danger" onclick="deletePet()" style="margin-top:18px;">Pet'i Sil</button>`;
-    currentRoom = currentRoom || 'home';
+  currentRoom = currentRoom || 'home';
   try{ renderScene(currentRoom); }catch(e){ console.error('renderScene hata:', e); }
   const _ps=$('petScene'); if(_ps && !_ps.querySelector('.pet-mover') && !_ps.querySelector('.scene-home')){ try{ renderScene('home'); }catch(e){} }
   scheduleLoveEnd();
@@ -1281,7 +1251,7 @@ function renderPet(){
 window.hatchPet = async ()=>{
   const nm=($('petName')?.value.trim())||'Minik';
   const keys=Object.keys(SPECIES); const sp=keys[Math.floor(Math.random()*keys.length)];
-  resetFloor();
+  resetFloor(); resetBars();
   await setDoc(petDoc(), { species:sp, name:nm, bornAt:serverTimestamp(), level:1, xp:0, hunger:80, happy:80, energy:80, clean:80, lastTick:serverTimestamp(), lastCare:null, loveUntil:0 });
   toast(`${SPECIES[sp].name} yumurtadan çıktı!`);
 };
@@ -1303,6 +1273,8 @@ window.care = async function(type){
   await updateDoc(petDoc(), { hunger:h, happy:hp, energy:en, clean:cl, xp, level:lv, lastTick:serverTimestamp(), lastCare:{idx:ME, at:serverTimestamp()}, loveUntil });
   DB.pet={...DB.pet, hunger:h, happy:hp, energy:en, clean:cl, xp, level:lv, loveUntil};
   writeFloor(xp, lv);
+  markCare();
+  writeBars(decay(DB.pet));
   tempFace = type==='sleep' ? 'sleepy' : (type==='love' ? 'love' : 'happy');
   window._lastSay = loveMsg ? 'İkiniz birlikte ilgilendiniz, çok mutlu!' : (leveled ? pick(CARE_LINES[type])+' Büyüdüm, bak!' : pick(CARE_LINES[type]));
   applyFace(tempFace); lastFace=tempFace;
@@ -1318,7 +1290,7 @@ window.deletePet = async function(){
   if(!DB.pet) return;
   if(!confirm("Pet'i silmek istediğine emin misin? Bu işlem geri alınamaz.")) return;
   await deleteDoc(petDoc());
-  resetFloor();
+  resetFloor(); resetBars();
   toast('Pet silindi');
 };
 
@@ -1501,10 +1473,9 @@ window.deleteAccount = async function(){
 setInterval(()=>{
   if(current==='pet' && DB.pet && !tempFace){ tickPet(); }
   else if(current==='home' && DB.pet){ tickMini(); }
-  if(DB.pet) petNotify(decay(DB.pet));
+  if(DB.pet){ const c=decay(DB.pet); petNotify(c); writeBars(c); }
 }, 4000);
 </script>
-
 <script>
   if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 </script>
