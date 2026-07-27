@@ -666,248 +666,1169 @@ function notifyOthers(title, body){
     }).catch(()=>{});
   }catch(e){}
 }
+/* ===== SANALIKA SAHNESI (CHIBI YERINE) ===== */
+let sPData = {
+  gender: 'male',
+  name: 'Oyuncu',
+  hair: 'style-2',
+  colors: {
+    skin: '#ffdbac',
+    hair: '#4a2e00',
+    shirt: '#2e86de',
+    pants: '#333333',
+    shoes: '#ffffff'
+  }
+};
 
-/* ===== CHIBI SAHNESI (yeşil ekran / chroma key) ===== */
-function avatarStyleOnce(){
-  if(document.getElementById('av-css')) return;
-  const s=document.createElement('style'); s.id='av-css';
-  s.textContent=`
-  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap');
-  #av-scene{ position:fixed; inset:0; z-index:9200; display:none; overflow:hidden; font-family:'Nunito',system-ui,sans-serif; }
-  #av-scene.open{ display:block; }
-  #av-scene .av-sky{ position:absolute; inset:0; background:linear-gradient(180deg,#fefdfb 0%, #fdf8f4 40%, #fbf2ee 72%, #f7ece6 100%); }
-  #av-scene .av-blob{ position:absolute; border-radius:50%; filter:blur(34px); pointer-events:none; opacity:.55; }
-  #av-scene .av-blob.b1{ left:-6%; bottom:14%; width:46%; height:30%; background:radial-gradient(closest-side,#cfe6c4,rgba(207,230,196,0)); }
-  #av-scene .av-blob.b2{ right:-8%; bottom:16%; width:50%; height:32%; background:radial-gradient(closest-side,#f6d2dd,rgba(246,210,221,0)); }
-  #av-scene .av-blob.b3{ left:34%; bottom:12%; width:38%; height:24%; background:radial-gradient(closest-side,#f3e0c4,rgba(243,224,196,0)); opacity:.45; }
-  #av-scene .av-floor{ position:absolute; left:-4%; right:-4%; bottom:0; height:24%; pointer-events:none; background:linear-gradient(180deg, rgba(233,221,201,0) 0%, #e9ddc9 42%, #ddcfb6 100%); -webkit-mask-image:linear-gradient(180deg, transparent, #000 38%); mask-image:linear-gradient(180deg, transparent, #000 38%); }
-  #av-scene .av-twinkle{ position:absolute; width:7px; height:7px; pointer-events:none; border-radius:50%; background:radial-gradient(closest-side, rgba(255,170,190,.9), rgba(255,170,190,0)); animation:av-tw 3.4s ease-in-out infinite; }
-  @keyframes av-tw{ 0%,100%{opacity:.1; transform:scale(.6)} 50%{opacity:.8; transform:scale(1.15)} }
-  #av-scene .av-particle{ position:absolute; pointer-events:none; will-change:transform,opacity; }
-  #av-scene .av-cloud{ position:absolute; pointer-events:none; opacity:.4; background:radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0)); border-radius:50%; filter:blur(1px); animation:av-drift linear infinite; }
-  @keyframes av-drift{ from{ transform:translateX(-30vw); } to{ transform:translateX(130vw); } }
-  #av-scene .av-topbar{ position:absolute; top:0; left:0; right:0; z-index:6; text-align:center; padding:calc(18px + env(safe-area-inset-top)) 60px 8px; }
-  #av-scene .av-title{ font-family:'Fredoka',sans-serif; font-weight:700; font-size:30px; color:#2c2630; letter-spacing:-.8px; line-height:.9; }
-  #av-scene .av-titlesub{ display:inline-block; font-family:'Nunito',sans-serif; font-size:11px; font-weight:700; color:#a99aa2; margin-top:8px; letter-spacing:2px; }
-  #av-scene .av-x{ position:absolute; top:calc(14px + env(safe-area-inset-top)); right:16px; width:38px; height:38px; border-radius:50%; border:none; cursor:pointer; background:#ececec; color:#9a9a9a; font-size:20px; line-height:1; display:grid; place-items:center; transition:transform .25s cubic-bezier(.34,1.56,.64,1), background .2s ease; z-index:7; }
-  #av-scene .av-x:hover{ transform:rotate(90deg) scale(1.08); background:#e2e2e2; color:#777; }
-  #av-scene .av-stage{ position:absolute; left:0; right:0; bottom:110px; z-index:4; display:flex; align-items:flex-end; justify-content:center; gap:16px; padding:0 14px; }
-  #av-scene .av-actor{ position:relative; display:flex; flex-direction:column; align-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent; width:auto; max-width:none; }
-  #av-scene .av-figure{ position:relative; width:min(44vw, 42vh); aspect-ratio:1/1.2; z-index:1; }
-  #av-scene .av-figure.jump{ animation:av-jump2 1s cubic-bezier(.34,1.56,.64,1); }
-  @keyframes av-jump2{ 0%{transform:translateY(0)} 25%{transform:translateY(-15px)} 50%{transform:translateY(0)} 75%{transform:translateY(-6px)} 100%{transform:translateY(0)} }
-  #av-scene .av-poses{ position:absolute; inset:0; display:grid; place-items:center; transform-origin:50% 97%; animation:av-breathe 3.6s ease-in-out infinite; }
-  #av-scene .av-actor:nth-child(2) .av-poses{ animation-delay:-1.8s; }
-  @keyframes av-breathe{ 0%,100%{ transform:scaleY(1) translateY(0); } 50%{ transform:scaleY(1.016) translateY(-3px); } }
-  #av-scene .av-idle{ position:absolute; left:-10000px; top:0; width:2px; height:2px; opacity:0 !important; pointer-events:none; }
-  #av-scene .av-vid{ position:absolute; left:-10000px; top:0; width:2px; height:2px; opacity:0 !important; pointer-events:none; }
-  #av-scene .av-idle-cv{ position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .2s ease; pointer-events:none; z-index:1; }
-  #av-scene .av-vid-cv{ position:absolute; inset:0; width:100%; height:100%; opacity:0; transition:opacity .12s ease; pointer-events:none; z-index:2; }
-  #av-scene .av-motion{ position:absolute; top:42%; width:14px; height:34px; pointer-events:none; opacity:.32; transition:opacity .2s ease; }
-  #av-scene .av-motion.l{ left:-2%; } #av-scene .av-motion.r{ right:-2%; transform:scaleX(-1); }
-  #av-scene .av-motion svg{ width:100%; height:100%; display:block; }
-  #av-scene .av-figure.act .av-motion{ opacity:.85; animation:av-motpulse .5s ease-in-out 2; }
-  @keyframes av-motpulse{ 0%,100%{opacity:.4} 50%{opacity:.95} }
-  #av-scene .av-shadow{ width:54%; height:13px; margin-top:-6px; border-radius:50%; background:radial-gradient(closest-side, rgba(120,90,70,.22), rgba(120,90,70,0)); animation:av-shadowpulse 3.6s ease-in-out infinite; }
-  #av-scene .av-actor:nth-child(2) .av-shadow{ animation-delay:-1.8s; }
-  @keyframes av-shadowpulse{ 0%,100%{ transform:scaleX(1); opacity:.9; } 50%{ transform:scaleX(.84); opacity:.6; } }
-  #av-scene .av-midheart{ position:absolute; left:50%; top:30%; transform:translateX(-50%); z-index:5; animation:av-beat 1.7s ease-in-out infinite; pointer-events:none; opacity:.85; }
-  #av-scene .av-midheart svg{ width:26px; height:26px; }
-  @keyframes av-beat{ 0%,100%{transform:translateX(-50%) scale(1)} 18%{transform:translateX(-50%) scale(1.22)} 36%{transform:translateX(-50%) scale(1)} 54%{transform:translateX(-50%) scale(1.12)} }
-  #av-scene .av-float-heart{ position:absolute; bottom:40%; left:50%; width:18px; height:18px; z-index:5; pointer-events:none; background:no-repeat center/contain; animation:av-floatup 1.2s ease-out forwards; }
-  @keyframes av-floatup{ 0%{opacity:0;transform:translate(-50%,0) scale(.4)} 20%{opacity:1} 100%{opacity:0;transform:translate(var(--dx),-130px) scale(1.2) rotate(var(--rot))} }
-  #av-scene .av-dock{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(22px + env(safe-area-inset-bottom)); z-index:7; display:flex; gap:14px; background:#ffffff; border-radius:999px; padding:11px 18px; box-shadow:0 12px 32px rgba(170,90,110,.2); }
-  #av-scene .av-dock.pulse{ animation:av-dockpulse .4s ease; }
-  @keyframes av-dockpulse{ 0%,100%{transform:translateX(-50%) scale(1)} 40%{transform:translateX(-50%) scale(1.04)} }
-  #av-scene .av-mood{ position:relative; width:48px; height:48px; border-radius:50%; border:none; cursor:pointer; background:#fdf3ee; display:grid; place-items:center; font-size:23px; line-height:1; transition:transform .16s cubic-bezier(.34,1.56,.64,1), background .16s ease; -webkit-tap-highlight-color:transparent; }
-  #av-scene .av-mood:hover{ transform:translateY(-3px); background:#fceae2; }
-  #av-scene .av-mood:active{ transform:scale(.86); }
-  #av-scene .av-mood.ping::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:2.5px solid rgba(255,176,84,.85); animation:av-ping .62s ease-out; pointer-events:none; }
-  @keyframes av-ping{ 0%{transform:scale(.7);opacity:.9} 100%{transform:scale(1.5);opacity:0} }
-  `;
-  document.head.appendChild(s);
-}
-const AV_HEART='<svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z" fill="#f3a6b8"/></svg>';
-const HEART_RED="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23e8607a'/></svg>\")";
-const HEART_PINK="url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 21s-7.5-4.6-10-9.2C.4 8.6 2 5 5.4 5c2 0 3.3 1.1 4.1 2.3C10.3 6.1 11.6 5 13.6 5 17 5 18.6 8.6 17 11.8 14.5 16.4 12 21 12 21z' fill='%23f3a6b8'/></svg>\")";
-const MOTION_SVG='<svg viewBox="0 0 14 34" fill="none" stroke="#caa9a0" stroke-width="2.4" stroke-linecap="round"><path d="M11 4 C5 8 5 13 11 17"/><path d="M12 17 C6 21 6 26 12 30"/></svg>';
-const CHIBI_FACE='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f6a8b8" stroke-width="1.7"/><circle cx="9" cy="11" r="1.15" fill="#f6a8b8"/><circle cx="15" cy="11" r="1.15" fill="#f6a8b8"/><path d="M9 14.4c1 1.3 5 1.3 6 0" stroke="#f6a8b8" stroke-width="1.5" stroke-linecap="round"/></svg>';
+let sPlayerRef = null;
+const sCharacters = {};
+let sActiveUIBubble = null;
 
-/* ---- yeşil silme motoru ---- */
-function drawChroma(video, canvas){
-  if(!canvas || !video) return;
-  const vw=video.videoWidth, vh=video.videoHeight;
-  if(!vw || !vh) return;
-  const H=Math.min(380, vh);
-  const W=Math.max(1, Math.round(vw*H/vh));
-  if(canvas.width!==W || canvas.height!==H){ canvas.width=W; canvas.height=H; }
-  const ctx = canvas._ctx || (canvas._ctx = canvas.getContext('2d', { willReadFrequently:true }));
-  ctx.drawImage(video, 0, 0, W, H);
-  let img;
-  try{ img = ctx.getImageData(0,0,W,H); }catch(e){ return; }
-  const d = img.data;
-  for(let i=0;i<d.length;i+=4){
-    const r=d[i], g=d[i+1], b=d[i+2];
-    const maxRB = r>b?r:b;
-    const diff = g - maxRB;
-    if(diff > 16){
-      if(diff > 42){ d[i+3]=0; }
-      else { const a = 1 - (diff-16)/(42-16); d[i+3] = (a*255)|0; d[i+1] = maxRB; }
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-}
-function chromaTick(fig){
-  if(fig._raf) return;
-  const loop = ()=>{
-    fig._raf = requestAnimationFrame(loop);
-    if(fig._idleOn){ const iv=idleVidOf(fig); if(iv && iv.readyState>=2 && !iv.paused) drawChroma(iv, idleCvOf(fig)); }
-    if(fig._waveOn){ const vv=waveVidOf(fig); if(vv && vv.readyState>=2 && !vv.paused) drawChroma(vv, waveCvOf(fig)); }
-  };
-  fig._raf = requestAnimationFrame(loop);
-}
-function chromaStop(fig){ if(fig._raf){ cancelAnimationFrame(fig._raf); fig._raf=null; } }
+const sHairStyles = {
+  'style-1': `<path d="M 26 32 C 26 -2, 74 -2, 74 32 C 74 20, 62 14, 50 14 C 38 14, 26 20, 26 32 Z" />`,
+  'style-2': `<path d="M 26 32 C 26 -5, 74 -5, 74 32 C 78 50, 72 58, 68 55 C 66 35, 68 18, 50 16 C 32 18, 34 35, 32 55 C 28 58, 22 50, 26 32 Z" />`,
+  'style-3': `<circle cx="50" cy="2" r="11" /><path d="M 26 32 C 26 -4, 74 -4, 74 32 Z" />`,
+  'style-4': `<path d="M 24 16 C 24 -6, 76 -6, 76 16 Z" fill="#e74c3c" /><path d="M 45 16 L 84 16 L 80 21 L 45 21 Z" fill="#c0392b" />`
+};
 
-function setupAvatarFab(){
-  avatarStyleOnce();
-  if(!document.getElementById('av-chibi-css')){ const st=document.createElement('style'); st.id='av-chibi-css';
-    st.textContent='.av-chibi-tab{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;background:transparent;border:none;-webkit-tap-highlight-color:transparent;height:100%;min-height:46px;transition:transform .14s ease;} .av-chibi-tab:active{transform:scale(.82);} .av-chibi-ico{display:flex;align-items:center;justify-content:center;line-height:0;} .av-chibi-ico svg{width:24px;height:24px;display:block;}';
-    document.head.appendChild(st); }
-  function findBottomBar(){
-    let best=null, bestScore=-1e9;
-    document.querySelectorAll('body *').forEach(el=>{
-      if(el.id==='av-scene'||el.id==='av-chibi-btn') return;
-      const cs=getComputedStyle(el); if(cs.display==='none'||cs.visibility==='hidden') return;
-      const r=el.getBoundingClientRect(); if(r.height<36||r.height>200) return;
-      const kids=[...el.children].filter(k=>{ const kr=k.getClientRects(); return kr.length&&kr[0].width>10; });
-      if(kids.length<3||kids.length>6) return;
-      const ws=kids.map(k=>k.getBoundingClientRect().width); const mx=Math.max(...ws), mn=Math.min(...ws);
-      if(mn<=0||mx/mn>1.6) return;
-      const fixed=(cs.position==='fixed'||cs.position==='sticky')?100000:0;
-      const score=fixed + r.bottom*10 + kids.length;
-      if(score>bestScore){ bestScore=score; best=el; }
-    });
-    return best;
+function sGenerateSVG(idPrefix) {
+  return `
+<div class="s-character-container">
+  <div class="s-nametag" id="${idPrefix}-nametag">Karakter</div>
+  <svg id="${idPrefix}-svg" class="s-avatar-svg" viewBox="0 0 100 130">
+    <ellipse cx="50" cy="125" rx="22" ry="5" fill="rgba(0,0,0,0.2)" />
+
+    <g class="s-leg-left">
+      <rect class="s-svg-pants" x="38" y="75" width="10" height="32" rx="4" />
+      <rect class="s-svg-shoes" x="36" y="102" width="12" height="8" rx="3" />
+    </g>
+
+    <g class="s-leg-right">
+      <rect class="s-svg-pants" x="52" y="75" width="10" height="32" rx="4" />
+      <rect class="s-svg-shoes" x="52" y="102" width="12" height="8" rx="3" />
+    </g>
+
+    <g class="s-torso-group">
+      <rect class="s-svg-shirt" x="33" y="45" width="34" height="32" rx="6" />
+    </g>
+
+    <g class="s-arm-left">
+      <rect class="s-svg-skin" x="25" y="47" width="9" height="26" rx="4" />
+    </g>
+
+    <g class="s-arm-right">
+      <rect class="s-svg-skin" x="66" y="47" width="9" height="26" rx="4" />
+    </g>
+
+    <g class="s-head-group">
+      <circle class="s-svg-skin" cx="50" cy="32" r="20" />
+      <circle id="${idPrefix}-blush-l" cx="40" cy="36" r="3" fill="#ff7675" opacity="0" />
+      <circle id="${idPrefix}-blush-r" cx="60" cy="36" r="3" fill="#ff7675" opacity="0" />
+
+      <g id="${idPrefix}-expr-normal" class="s-expression">
+        <circle cx="42" cy="30" r="2.5" fill="#2d3436" />
+        <circle cx="58" cy="30" r="2.5" fill="#2d3436" />
+        <path class="s-eyelash" d="M 39 27 L 41 28 M 61 27 L 59 28" stroke="#2d3436" stroke-width="1.5" display="none" />
+        <path d="M 46 37 Q 50 40 54 37" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
+      </g>
+
+      <g id="${idPrefix}-expr-laugh" class="s-expression" style="display:none;">
+        <path d="M 39 29 Q 42 26 45 29 M 55 29 Q 58 26 61 29" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
+        <path d="M 44 36 Q 50 42 56 36" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
+      </g>
+
+      <g id="${idPrefix}-expr-angry" class="s-expression" style="display:none;">
+        <path d="M 38 26 L 46 29 M 62 26 L 54 29" stroke="#2d3436" stroke-width="2.5" stroke-linecap="round" />
+        <circle cx="42" cy="32" r="2" fill="#2d3436" />
+        <circle cx="58" cy="32" r="2" fill="#2d3436" />
+        <path d="M 45 39 Q 50 35 55 39" stroke="#2d3436" stroke-width="2.5" fill="none" stroke-linecap="round" />
+      </g>
+
+      <g id="${idPrefix}-expr-cry" class="s-expression" style="display:none;">
+        <path d="M 38 29 Q 42 26 46 29 M 54 29 Q 58 26 62 29" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
+        <path d="M 46 38 Q 50 35 54 38" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
+      </g>
+
+      <g id="${idPrefix}-expr-shock" class="s-expression" style="display:none;">
+        <circle cx="42" cy="30" r="3" fill="#2d3436" />
+        <circle cx="58" cy="30" r="3" fill="#2d3436" />
+        <ellipse cx="50" cy="38" rx="3" ry="4" fill="#2d3436" />
+      </g>
+
+      <g id="${idPrefix}-expr-sleep" class="s-expression" style="display:none;">
+        <path d="M 39 31 Q 42 33 45 31 M 55 31 Q 58 33 61 31" stroke="#2d3436" stroke-width="2" fill="none" stroke-linecap="round" />
+        <path d="M 47 38 Q 50 39 53 38" stroke="#2d3436" stroke-width="1.5" fill="none" stroke-linecap="round" />
+      </g>
+
+      <g id="${idPrefix}-hair-group" class="s-svg-hair"></g>
+    </g>
+  </svg>
+</div>`;
+}
+
+function sInjectStyle() {
+  if (document.getElementById('sanalika-css')) return;
+
+  const st = document.createElement('style');
+  st.id = 'sanalika-css';
+  st.textContent = `
+#sanalika-root{
+  position:fixed;
+  inset:0;
+  z-index:9300;
+  display:none;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  user-select:none;
+}
+#sanalika-root.open{ display:block; }
+#sanalika-root *{ box-sizing:border-box; }
+
+#sanalika-root .s-close{
+  position:absolute;
+  top:calc(14px + env(safe-area-inset-top));
+  right:16px;
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  border:none;
+  background:rgba(255,255,255,.92);
+  color:#333;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+  z-index:1300;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+
+#sanalika-root #sanalika-character-creator{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,#1e3c72,#2a5298);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  overflow:auto;
+  z-index:1000;
+}
+
+#sanalika-root .s-creator-card{
+  background:rgba(255,255,255,.12);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:24px;
+  padding:30px;
+  display:flex;
+  gap:40px;
+  box-shadow:0 20px 40px rgba(0,0,0,.4);
+  color:#fff;
+  max-width:850px;
+  width:90%;
+}
+
+#sanalika-root .s-preview-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.25);
+  border-radius:16px;
+  padding:20px;
+  min-height:320px;
+}
+
+#sanalika-root .s-controls-area{
+  flex:1.2;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:80vh;
+  overflow-y:auto;
+  padding-right:5px;
+}
+
+#sanalika-root .s-controls-area h2{
+  margin:0 0 10px 0;
+  color:#48dbfb;
+  text-align:center;
+}
+
+#sanalika-root .s-form-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+#sanalika-root .s-form-row label{
+  font-size:14px;
+  font-weight:600;
+  color:#fff;
+  margin:0;
+}
+
+#sanalika-root select,
+#sanalika-root input[type="text"]{
+  padding:8px 12px;
+  border-radius:8px;
+  border:1px solid rgba(255,255,255,.3);
+  background:rgba(0,0,0,.4);
+  color:#fff;
+  font-size:14px;
+  outline:none;
+  width:60%;
+  margin:0;
+  box-shadow:none;
+}
+
+#sanalika-root input[type="color"]{
+  border:none;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  cursor:pointer;
+  background:none;
+  padding:0;
+  margin:0;
+  box-shadow:none;
+}
+
+#sanalika-root .s-gender-btn-group{
+  display:flex;
+  gap:10px;
+  width:60%;
+}
+
+#sanalika-root .s-gender-btn{
+  flex:1;
+  padding:8px;
+  border:1px solid rgba(255,255,255,.3);
+  background:rgba(0,0,0,.3);
+  color:#fff;
+  border-radius:8px;
+  cursor:pointer;
+  font:inherit;
+}
+
+#sanalika-root .s-gender-btn.active{
+  background:#48dbfb;
+  color:#1a1a2e;
+  font-weight:bold;
+}
+
+#sanalika-root .s-start-btn{
+  margin-top:10px;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#10ac84;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  width:100%;
+}
+
+#sanalika-root #sanalika-game-world{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(to bottom,#74b9ff 0%,#a1c4fd 100%);
+  cursor:crosshair;
+  display:none;
+  overflow:hidden;
+  z-index:900;
+}
+
+#sanalika-root .s-character-wrapper{
+  position:absolute;
+  transform:translate(-50%,-100%);
+  transition-property:left,top;
+  transition-timing-function:linear;
+  z-index:10;
+}
+
+#sanalika-root .s-character-container{
+  position:relative;
+  width:120px;
+  height:160px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#sanalika-root .s-npc-wrapper:hover .s-avatar-svg{
+  filter:drop-shadow(0 0 12px rgba(255,255,255,.9));
+  cursor:pointer;
+}
+
+#sanalika-root .s-nametag{
+  background:rgba(0,0,0,.65);
+  color:#fff;
+  padding:3px 10px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:bold;
+  white-space:nowrap;
+  margin-bottom:5px;
+  z-index:15;
+  border:1px solid rgba(255,255,255,.2);
+}
+
+#sanalika-root .s-avatar-svg{
+  width:100px;
+  height:130px;
+  overflow:visible;
+}
+
+#sanalika-root .s-avatar-svg g{
+  transform-box:view-box;
+}
+
+#sanalika-root .s-svg-skin{ fill:var(--skin-color); }
+#sanalika-root .s-svg-hair{ fill:var(--hair-color); }
+#sanalika-root .s-svg-shirt{ fill:var(--shirt-color); }
+#sanalika-root .s-svg-pants{ fill:var(--pants-color); }
+#sanalika-root .s-svg-shoes{ fill:var(--shoes-color); }
+
+#sanalika-root .s-request-bubble{
+  position:absolute;
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(5px);
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 8px 20px rgba(0,0,0,.3);
+  font-size:13px;
+  font-weight:bold;
+  color:#2c3e50;
+  text-align:center;
+  transform:translate(-50%,-100%);
+  z-index:1100;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  pointer-events:auto;
+  border:2px solid #48dbfb;
+  animation:sPopUp .3s cubic-bezier(.175,.885,.32,1.275);
+  width:max-content;
+  max-width:250px;
+}
+
+#sanalika-root .s-request-bubble span{
+  color:#2c3e50;
+  font-weight:bold;
+}
+
+@keyframes sPopUp{
+  0%{ transform:translate(-50%,-80%) scale(.5); opacity:0; }
+  100%{ transform:translate(-50%,-100%) scale(1); opacity:1; }
+}
+
+#sanalika-root .s-req-buttons{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+}
+
+#sanalika-root .s-req-btn{
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  color:#fff;
+  font-weight:bold;
+  transition:transform .1s;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+#sanalika-root .s-req-btn:hover{ transform:scale(1.05); }
+#sanalika-root .s-btn-hug{ background:#e84393; }
+#sanalika-root .s-btn-dance{ background:#0984e3; }
+#sanalika-root .s-btn-accept{ background:#00b894; }
+#sanalika-root .s-btn-reject{ background:#d63031; }
+
+#sanalika-root .s-walking .s-leg-left{
+  animation:sWalkLeg .4s infinite alternate ease-in-out;
+  transform-origin:42px 80px;
+}
+#sanalika-root .s-walking .s-leg-right{
+  animation:sWalkLeg .4s infinite alternate-reverse ease-in-out;
+  transform-origin:58px 80px;
+}
+#sanalika-root .s-walking .s-arm-left{
+  animation:sWalkArm .4s infinite alternate-reverse ease-in-out;
+  transform-origin:32px 50px;
+}
+#sanalika-root .s-walking .s-arm-right{
+  animation:sWalkArm .4s infinite alternate ease-in-out;
+  transform-origin:68px 50px;
+}
+#sanalika-root .s-walking .s-head-group{
+  animation:sHeadBob .2s infinite alternate ease-in-out;
+  transform-origin:50px 45px;
+}
+
+@keyframes sWalkLeg{
+  0%{ transform:rotate(-25deg); }
+  100%{ transform:rotate(25deg); }
+}
+@keyframes sWalkArm{
+  0%{ transform:rotate(20deg); }
+  100%{ transform:rotate(-20deg); }
+}
+@keyframes sHeadBob{
+  0%{ transform:translateY(0); }
+  100%{ transform:translateY(-3px); }
+}
+
+#sanalika-root .s-anim-hug .s-arm-left{
+  animation:sHugArmL 2.5s ease-in-out;
+  transform-origin:32px 50px;
+}
+#sanalika-root .s-anim-hug .s-arm-right{
+  animation:sHugArmR 2.5s ease-in-out;
+  transform-origin:68px 50px;
+}
+#sanalika-root .s-anim-hug .s-head-group{
+  transform:rotate(4deg) translateY(2px);
+  transition:.3s;
+}
+
+@keyframes sHugArmL{
+  0%,100%{ transform:rotate(0); }
+  20%,80%{ transform:rotate(75deg); }
+}
+@keyframes sHugArmR{
+  0%,100%{ transform:rotate(0); }
+  20%,80%{ transform:rotate(-75deg); }
+}
+
+#sanalika-root .s-anim-wave .s-arm-right{
+  animation:sWaveHand .35s infinite alternate ease-in-out;
+  transform-origin:70px 50px;
+}
+@keyframes sWaveHand{
+  0%{ transform:rotate(0deg); }
+  100%{ transform:rotate(-130deg); }
+}
+
+#sanalika-root .s-anim-laugh .s-avatar-svg{
+  animation:sLaughBounce .4s infinite alternate ease-in-out;
+}
+@keyframes sLaughBounce{
+  0%{ transform:translateY(0); }
+  100%{ transform:translateY(-6px); }
+}
+
+#sanalika-root .s-anim-love .s-avatar-svg{
+  animation:sLoveFloat .6s infinite alternate ease-in-out;
+}
+@keyframes sLoveFloat{
+  0%{ transform:translateY(0) scale(1); }
+  100%{ transform:translateY(-12px) scale(1.05); }
+}
+
+#sanalika-root .s-anim-angry .s-avatar-svg{
+  animation:sAngryShake .08s infinite;
+  filter:drop-shadow(0 0 8px rgba(255,0,0,.8));
+}
+@keyframes sAngryShake{
+  0%{ transform:translateX(-4px); }
+  100%{ transform:translateX(4px); }
+}
+
+#sanalika-root .s-anim-cry .s-head-group{
+  transform:rotate(5deg) translateY(3px);
+}
+#sanalika-root .s-anim-cry .s-avatar-svg{
+  animation:sCryShake .4s infinite alternate;
+}
+@keyframes sCryShake{
+  0%{ transform:translateY(0); }
+  100%{ transform:translateY(2px); }
+}
+
+#sanalika-root .s-anim-shock .s-head-group{
+  animation:sShockHead .3s ease;
+  transform-origin:50px 32px;
+}
+@keyframes sShockHead{
+  0%{ transform:scale(1); }
+  50%{ transform:scale(1.15); }
+  100%{ transform:scale(1); }
+}
+
+#sanalika-root .s-anim-sleep .s-head-group{
+  transform:translateY(3px) rotate(8deg);
+}
+
+#sanalika-root .s-anim-dance .s-avatar-svg{
+  animation:sDanceBody .6s infinite alternate ease-in-out;
+}
+#sanalika-root .s-anim-dance .s-arm-left{
+  animation:sDanceArmL .6s infinite alternate;
+  transform-origin:32px 50px;
+}
+#sanalika-root .s-anim-dance .s-arm-right{
+  animation:sDanceArmR .6s infinite alternate;
+  transform-origin:68px 50px;
+}
+
+@keyframes sDanceBody{
+  0%{ transform:scaleY(.95) rotate(-5deg); }
+  100%{ transform:scaleY(1.05) rotate(5deg); }
+}
+@keyframes sDanceArmL{
+  0%{ transform:rotate(120deg); }
+  100%{ transform:rotate(-30deg); }
+}
+@keyframes sDanceArmR{
+  0%{ transform:rotate(-120deg); }
+  100%{ transform:rotate(30deg); }
+}
+
+#sanalika-root .s-particle{
+  position:absolute;
+  pointer-events:none;
+  z-index:1200;
+}
+
+#sanalika-root .s-heart-particle{
+  color:#ff4757;
+  font-size:20px;
+  animation:sFloatUp 1.2s ease-out forwards;
+}
+
+#sanalika-root .s-tear-particle{
+  background:#74b9ff;
+  width:6px;
+  height:10px;
+  border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+  animation:sTearDrop .8s ease-in forwards;
+}
+
+@keyframes sFloatUp{
+  0%{ opacity:1; transform:translateY(0) scale(.5); }
+  100%{ opacity:0; transform:translateY(-60px) scale(1.3); }
+}
+
+@keyframes sTearDrop{
+  0%{ opacity:1; transform:translateY(0) scale(.5); }
+  100%{ opacity:0; transform:translateY(40px) scale(1); }
+}
+
+#sanalika-root #sanalika-ui{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(255,255,255,.9);
+  backdrop-filter:blur(8px);
+  padding:8px 18px;
+  border-radius:30px;
+  display:none;
+  gap:10px;
+  z-index:1150;
+}
+
+#sanalika-root .s-emoji-btn{
+  background:#fff;
+  border:none;
+  font-size:22px;
+  cursor:pointer;
+  border-radius:50%;
+  width:45px;
+  height:45px;
+  transition:transform .15s;
+}
+
+#sanalika-root .s-emoji-btn:hover{
+  transform:scale(1.15);
+  background:#f1f2f6;
+}
+
+@media (max-width:700px){
+  #sanalika-root .s-creator-card{
+    flex-direction:column;
+    gap:18px;
+    padding:18px;
+    width:94%;
   }
-  function injectChibi(bar){
-    if(!bar||bar.querySelector('[data-av-chibi]')) return;
-    const btn=document.createElement('button');
-    btn.id='av-chibi-btn'; btn.setAttribute('data-av-chibi','1'); btn.setAttribute('aria-label','Chibi sahnesi'); btn.className='av-chibi-tab';
-    btn.innerHTML='<span class="av-chibi-ico">'+CHIBI_FACE+'</span>';
-    btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openScene();});
-    bar.appendChild(btn);
+
+  #sanalika-root .s-preview-area{
+    min-height:220px;
   }
-  function tryInject(){ const bar=findBottomBar(); if(bar){ injectChibi(bar); return true; } return false; }
-  if(!tryInject()){
-    let tries=0; const t=setInterval(()=>{ tries++; if(tryInject()||tries>25) clearInterval(t); },400);
-    try{ const mo=new MutationObserver(()=>{ if(tryInject()) mo.disconnect(); });
-      mo.observe(document.body,{childList:true,subtree:true}); setTimeout(()=>mo.disconnect(),15000); }catch(e){}
-    window.addEventListener('scroll',()=>tryInject(),{passive:true});
+
+  #sanalika-root .s-controls-area{
+    max-height:none;
+    overflow:visible;
   }
-  if(!document.getElementById('av-tabbar-fix')){ const fx=document.createElement('style'); fx.id='av-tabbar-fix';
-    fx.textContent='#tabbar>*{flex:1 1 0 !important;min-width:0 !important;width:auto !important;}';
-    document.head.appendChild(fx); }
-  const sc=document.createElement('div'); sc.id='av-scene';
-  const slotHTML=(who)=>`<div class="av-actor" id="av-slot-${who}" data-who="${who}">
-      <div class="av-figure"><div class="av-poses"></div>
-        <span class="av-motion l">${MOTION_SVG}</span><span class="av-motion r">${MOTION_SVG}</span></div>
-      <div class="av-shadow"></div>
-    </div>`;
-  sc.innerHTML=`
-    <div class="av-sky"></div>
-    <div class="av-blob b1"></div><div class="av-blob b2"></div><div class="av-blob b3"></div>
-    <div class="av-floor"></div>
-    <div class="av-topbar">
-      <div class="av-title">Chibi Sahnemiz</div>
-      <div class="av-titlesub">dokun · oynat · sev</div>
+
+  #sanalika-root .s-form-row{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:6px;
+  }
+
+  #sanalika-root select,
+  #sanalika-root input[type="text"],
+  #sanalika-root .s-gender-btn-group{
+    width:100%;
+  }
+
+  #sanalika-root #sanalika-ui{
+    width:calc(100% - 24px);
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+}
+`;
+  document.head.appendChild(st);
+}
+
+function sCloseBubble() {
+  if (sActiveUIBubble) {
+    sActiveUIBubble.remove();
+    sActiveUIBubble = null;
+  }
+}
+
+function sBindWorld() {
+  const world = document.getElementById('sanalika-game-world');
+  if (!world || world._sBound) return;
+  world._sBound = true;
+
+  world.addEventListener('click', (e) => {
+    if (e.target.closest('#sanalika-ui') || e.target.closest('.s-request-bubble')) return;
+    sCloseBubble();
+    if (sPlayerRef) sPlayerRef.walkTo(e.clientX, e.clientY);
+  });
+}
+
+function sBuild() {
+  if (document.getElementById('sanalika-root')) return;
+
+  sInjectStyle();
+
+  const root = document.createElement('div');
+  root.id = 'sanalika-root';
+  root.innerHTML = `
+    <button class="s-close" type="button" onclick="sClose()" aria-label="Kapat">×</button>
+
+    <div id="sanalika-character-creator">
+      <div class="s-creator-card">
+        <div class="s-preview-area">
+          <div id="s-preview-wrapper" class="s-character-wrapper" style="position:relative; transform:none;"></div>
+        </div>
+
+        <div class="s-controls-area">
+          <h2>Karakterini Tasarla</h2>
+
+          <div class="s-form-row">
+            <label>İsim:</label>
+            <input type="text" id="s-username" value="Oyuncu">
+          </div>
+
+          <div class="s-form-row">
+            <label>Cinsiyet:</label>
+            <div class="s-gender-btn-group">
+              <button type="button" class="s-gender-btn active" onclick="sSetGender('male', this)">Erkek</button>
+              <button type="button" class="s-gender-btn" onclick="sSetGender('female', this)">Kadın</button>
+            </div>
+          </div>
+
+          <div class="s-form-row">
+            <label>Saç/Şapka Stili:</label>
+            <select id="s-hairStyleSelect" onchange="sUpdateStyle()">
+              <option value="style-1">Kısa Modern</option>
+              <option value="style-2" selected>Uzun Dalgalı</option>
+              <option value="style-3">Topuz / Kıvırcık</option>
+              <option value="style-4">Geriye Şapka</option>
+            </select>
+          </div>
+
+          <hr style="border-top:1px solid rgba(255,255,255,.15); margin:5px 0;">
+
+          <div class="s-form-row">
+            <label>Ten:</label>
+            <input type="color" id="s-skinPicker" value="#ffdbac" oninput="sUpdateColors()">
+          </div>
+
+          <div class="s-form-row">
+            <label>Saç:</label>
+            <input type="color" id="s-hairPicker" value="#4a2e00" oninput="sUpdateColors()">
+          </div>
+
+          <div class="s-form-row">
+            <label>Tişört:</label>
+            <input type="color" id="s-shirtPicker" value="#2e86de" oninput="sUpdateColors()">
+          </div>
+
+          <div class="s-form-row">
+            <label>Pantolon:</label>
+            <input type="color" id="s-pantsPicker" value="#333333" oninput="sUpdateColors()">
+          </div>
+
+          <button type="button" class="s-start-btn" onclick="sEnterGameWorld()">Sunucuya Bağlan 🚀</button>
+        </div>
+      </div>
     </div>
-    <button class="av-x" aria-label="Kapat">&times;</button>
-    <div class="av-midheart">${AV_HEART}</div>
-    <div class="av-stage">${slotHTML('me')}${slotHTML('you')}</div>
-    <div class="av-dock">
-      <button class="av-mood" data-act="blink">😌</button>
-      <button class="av-mood" data-act="wave">👋</button>
-      <button class="av-mood" data-act="kiss">😘</button>
-      <button class="av-mood" data-act="happy">🥰</button>
-    </div>`;
-  document.body.appendChild(sc);
-  sc.querySelectorAll('.av-figure').forEach(fig=>{
-    fig._idleOn=false; fig._waveOn=false;
-    if(!fig.querySelector('video.av-idle')){
-      const idle=document.createElement('video'); idle.className='av-idle'; idle.src='chibi-idle.mp4';
-      idle.muted=true; idle.loop=true; idle.playsInline=true; idle.preload='auto';
-      idle.setAttribute('playsinline',''); idle.setAttribute('webkit-playsinline','');
-      fig.appendChild(idle);
-    }
-    if(!fig.querySelector('canvas.av-idle-cv')){
-      const ic=document.createElement('canvas'); ic.className='av-idle-cv'; fig.appendChild(ic);
-    }
-    if(!fig.querySelector('video.av-vid')){
-      const v=document.createElement('video'); v.className='av-vid'; v.src='chibi-wave.mp4'; v.muted=false; v.playsInline=true; v.preload='auto';
-      v.setAttribute('webkit-playsinline',''); v.setAttribute('playsinline','');
-      v.addEventListener('ended', ()=>{ fig._waveOn=false; const wc=waveCvOf(fig); if(wc) wc.style.opacity='0'; resumeIdle(fig); });
-      v.addEventListener('error', ()=>{ if(!window._avVidErr){ window._avVidErr=true; if(typeof toast==='function') toast('chibi-wave.mp4 bulunamadi'); } });
-      fig.appendChild(v);
-    }
-    if(!fig.querySelector('canvas.av-vid-cv')){
-      const wc=document.createElement('canvas'); wc.className='av-vid-cv'; fig.appendChild(wc);
-    }
+
+    <div id="sanalika-game-world"></div>
+
+    <div id="sanalika-ui">
+      <button type="button" class="s-emoji-btn" title="El Sallama" onclick="sPlayEmote('wave')">👋</button>
+      <button type="button" class="s-emoji-btn" title="Gülme" onclick="sPlayEmote('laugh')">😂</button>
+      <button type="button" class="s-emoji-btn" title="Sevgi" onclick="sPlayEmote('love')">❤️</button>
+      <button type="button" class="s-emoji-btn" title="Öfke" onclick="sPlayEmote('angry')">😡</button>
+      <button type="button" class="s-emoji-btn" title="Ağlama" onclick="sPlayEmote('cry')">😭</button>
+      <button type="button" class="s-emoji-btn" title="Şaşkınlık" onclick="sPlayEmote('shock')">😲</button>
+      <button type="button" class="s-emoji-btn" title="Dans Et" onclick="sPlayEmote('dance')">💃</button>
+      <button type="button" class="s-emoji-btn" title="Uyku" onclick="sPlayEmote('sleep')">💤</button>
+    </div>
+  `;
+
+  document.body.appendChild(root);
+
+  const preview = document.getElementById('s-preview-wrapper');
+  if (preview) preview.innerHTML = sGenerateSVG('s-preview');
+
+  const usernameInput = document.getElementById('s-username');
+  if (usernameInput) {
+    usernameInput.addEventListener('input', (e) => {
+      sPData.name = e.target.value.trim() || 'Oyuncu';
+      const nt = document.getElementById('s-preview-nametag');
+      if (nt) nt.innerText = sPData.name;
+    });
+  }
+
+  sBindWorld();
+  sUpdatePreview();
+}
+
+function sUpdatePreview() {
+  const wrap = document.getElementById('s-preview-wrapper');
+  if (!wrap) return;
+
+  Object.keys(sPData.colors).forEach((k) => {
+    wrap.style.setProperty(`--${k}-color`, sPData.colors[k]);
   });
-  sc.querySelector('.av-x').addEventListener('click', closeScene);
-  sc.querySelectorAll('.av-mood').forEach(b=> b.addEventListener('click', ()=> doMood(b.dataset.act, null, b)));
-  sc.querySelectorAll('.av-actor').forEach(a=> a.addEventListener('click', ()=> doMood('happy', a.dataset.who)));
-}
-function figOf(who){ const s=document.getElementById('av-slot-'+who); return s?s.querySelector('.av-figure'):null; }
-function idleVidOf(fig){ return fig?fig.querySelector('video.av-idle'):null; }
-function waveVidOf(fig){ return fig?fig.querySelector('video.av-vid'):null; }
-function idleCvOf(fig){ return fig?fig.querySelector('canvas.av-idle-cv'):null; }
-function waveCvOf(fig){ return fig?fig.querySelector('canvas.av-vid-cv'):null; }
-function resumeIdle(fig){ const iv=idleVidOf(fig); const ic=idleCvOf(fig); if(!iv) return; fig._idleOn=true; if(ic) ic.style.opacity='1'; const p=iv.play(); if(p&&p.catch){ p.catch(()=>{}); } }
-function pauseIdle(fig){ const iv=idleVidOf(fig); const ic=idleCvOf(fig); if(!iv) return; fig._idleOn=false; if(ic) ic.style.opacity='0'; try{ iv.pause(); }catch(e){} }
-function actFig(fig, ms){ if(!fig) return; fig.classList.add('act'); setTimeout(()=>fig.classList.remove('act'), ms||1000); }
-function spawnHearts(fig,n){ if(!fig) return; for(let i=0;i<n;i++){ const h=document.createElement('span'); h.className='av-float-heart'; h.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); h.style.setProperty('--dx',(Math.random()*90-45).toFixed(0)+'px'); h.style.setProperty('--rot',(Math.random()*50-25).toFixed(0)+'deg'); h.style.animationDelay=(i*0.08)+'s'; fig.appendChild(h); setTimeout(()=>h.remove(),1400); } }
-function playWaveVideo(w){
-  const fig=figOf(w); if(!fig) return;
-  pauseIdle(fig);
-  const vid=waveVidOf(fig); const wc=waveCvOf(fig);
-  if(!vid){ return; }
-  if(vid.networkState===3 || vid.error){ return; }
-  fig._waveOn=true; if(wc) wc.style.opacity='1';
-  try{ vid.currentTime=0; }catch(e){}
-  vid.muted=false; try{ vid.volume=1; }catch(e){}
-  let started=false;
-  const onPlay=()=>{ started=true; vid.removeEventListener('playing', onPlay); };
-  vid.addEventListener('playing', onPlay);
-  const tryPlay=(silent)=>{ if(silent) vid.muted=true; const p=vid.play(); if(p&&p.then){ p.then(()=>{ setTimeout(()=>{ if(!started){ fig._waveOn=false; if(wc) wc.style.opacity='0'; } }, 450); }); p.catch(()=>{ if(!silent) tryPlay(true); else { fig._waveOn=false; if(wc) wc.style.opacity='0'; } }); } };
-  tryPlay(false);
-  setTimeout(()=>{ if(!started){ fig._waveOn=false; if(wc) wc.style.opacity='0'; } }, 1500);
-}
-function doMood(act, who, btnEl){
-  if(btnEl){ btnEl.classList.remove('ping'); void btnEl.offsetWidth; btnEl.classList.add('ping'); setTimeout(()=>btnEl.classList.remove('ping'),650);
-    const dock=btnEl.closest('.av-dock'); if(dock){ dock.classList.remove('pulse'); void dock.offsetWidth; dock.classList.add('pulse'); setTimeout(()=>dock.classList.remove('pulse'),420); } }
-  const targets = who ? [who] : ['me','you'];
-  targets.forEach(w=>{
-    const fig=figOf(w);
-    if(act==='blink'){ actFig(fig,320); }
-    else if(act==='wave'){ playWaveVideo(w); }
-    else if(act==='happy'){ if(fig){ fig.classList.remove('jump'); void fig.offsetWidth; fig.classList.add('jump'); setTimeout(()=>fig.classList.remove('jump'),1050); } spawnHearts(fig,3); }
-    else if(act==='kiss'){ actFig(fig,1080); spawnHearts(fig,5); }
+
+  const hairGroup = document.getElementById('s-preview-hair-group');
+  if (hairGroup) hairGroup.innerHTML = sHairStyles[sPData.hair] || '';
+
+  wrap.querySelectorAll('.s-eyelash').forEach((el) => {
+    el.style.display = sPData.gender === 'female' ? 'block' : 'none';
   });
+
+  const nt = document.getElementById('s-preview-nametag');
+  if (nt) nt.innerText = sPData.name;
 }
-let _ambient=null;
-function openScene(){ const sc=document.getElementById('av-scene'); if(!sc) return; sc.classList.add('open'); startAmbient(sc); sc.querySelectorAll('.av-figure').forEach(fig=>{ resumeIdle(fig); chromaTick(fig); }); }
-function closeScene(){ const sc=document.getElementById('av-scene'); if(sc){ sc.classList.remove('open'); sc.querySelectorAll('.av-figure').forEach(fig=>{ pauseIdle(fig); chromaStop(fig); }); } stopAmbient(); }
-function startAmbient(sc){
-  stopAmbient(); const sky=sc.querySelector('.av-sky');
-  if(!sky.querySelector('.av-twinkle')){ for(let i=0;i<6;i++){ const t=document.createElement('div'); t.className='av-twinkle'; t.style.left=(8+Math.random()*84)+'%'; t.style.top=(10+Math.random()*40)+'%'; t.style.animationDelay=(-Math.random()*3.4)+'s'; const sz=4+Math.random()*5; t.style.width=sz+'px'; t.style.height=sz+'px'; sky.appendChild(t); } }
-  if(!sky.querySelector('.av-cloud')){ for(let i=0;i<2;i++){ const c=document.createElement('div'); c.className='av-cloud'; const sz=90+Math.random()*120; c.style.width=sz+'px'; c.style.height=(sz*0.45)+'px'; c.style.top=(8+Math.random()*26)+'%'; c.style.animationDuration=(30+Math.random()*22)+'s'; c.style.animationDelay=(-Math.random()*30)+'s'; sky.appendChild(c); } }
-  _ambient=setInterval(()=>{ if(!sc.classList.contains('open')) return; const p=document.createElement('div'); p.className='av-particle'; p.style.backgroundImage=(Math.random()<0.5?HEART_RED:HEART_PINK); p.style.backgroundSize='contain'; p.style.backgroundRepeat='no-repeat'; const sz=10+Math.random()*12; p.style.width=sz+'px'; p.style.height=sz+'px'; p.style.left=(Math.random()*100)+'%'; p.style.bottom='-20px'; sky.appendChild(p); const dx=(Math.random()*60-30), dur=4400+Math.random()*2600; p.animate([{transform:'translate(0,0) scale(.6)',opacity:0},{opacity:.75,offset:.2},{transform:`translate(${dx}px,-88vh) scale(1)`,opacity:0}],{duration:dur,easing:'ease-out'}); setTimeout(()=>p.remove(),dur); }, 1000);
+
+window.sSetGender = function (g, btn) {
+  sPData.gender = g;
+  document.querySelectorAll('#sanalika-root .s-gender-btn').forEach((b) => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  sUpdatePreview();
+};
+
+window.sUpdateColors = function () {
+  ['skin', 'hair', 'shirt', 'pants'].forEach((k) => {
+    const el = document.getElementById('s-' + k + 'Picker');
+    if (el) sPData.colors[k] = el.value;
+  });
+  sUpdatePreview();
+};
+
+window.sUpdateStyle = function () {
+  const el = document.getElementById('s-hairStyleSelect');
+  if (el) sPData.hair = el.value;
+  sUpdatePreview();
+};
+
+window.sClose = function () {
+  const root = document.getElementById('sanalika-root');
+  if (root) root.classList.remove('open');
+  sCloseBubble();
+};
+
+window.sOpen = function () {
+  sBuild();
+  const root = document.getElementById('sanalika-root');
+  if (root) root.classList.add('open');
+  sUpdatePreview();
+};
+
+window.sEnterGameWorld = function () {
+  const creator = document.getElementById('sanalika-character-creator');
+  const world = document.getElementById('sanalika-game-world');
+  const ui = document.getElementById('sanalika-ui');
+
+  if (creator) creator.style.display = 'none';
+  if (world) world.style.display = 'block';
+  if (ui) ui.style.display = 'flex';
+
+  if (!sPlayerRef) {
+    const px = Math.max(90, Math.min(window.innerWidth - 90, window.innerWidth / 2));
+    const py = Math.max(210, Math.min(window.innerHeight - 130, window.innerHeight / 2 + 50));
+
+    sPlayerRef = sCreateCharacterInWorld('s-player', sPData, px, py, false);
+    sCreateDefaultNPCs();
+  }
+};
+
+window.sPlayEmote = function (type) {
+  if (sPlayerRef) sPlayerRef.playEmote(type);
+};
+
+function sCreateCharacterInWorld(id, data, x, y, isNPC = false) {
+  const world = document.getElementById('sanalika-game-world');
+  if (!world) return null;
+
+  const old = document.getElementById(id);
+  if (old) old.remove();
+  delete sCharacters[id];
+
+  const wrap = document.createElement('div');
+  wrap.id = id;
+  wrap.className = 's-character-wrapper' + (isNPC ? ' s-npc-wrapper' : '');
+  wrap.style.left = x + 'px';
+  wrap.style.top = y + 'px';
+  wrap.style.zIndex = Math.floor(y);
+
+  Object.keys(data.colors).forEach((k) => {
+    wrap.style.setProperty(`--${k}-color`, data.colors[k]);
+  });
+
+  wrap.innerHTML = sGenerateSVG(id);
+  world.appendChild(wrap);
+
+  const nt = document.getElementById(`${id}-nametag`);
+  if (nt) nt.innerText = data.name;
+
+  const hg = document.getElementById(`${id}-hair-group`);
+  if (hg) hg.innerHTML = sHairStyles[data.hair] || '';
+
+  if (data.gender === 'female') {
+    wrap.querySelectorAll('.s-eyelash').forEach((el) => {
+      el.style.display = 'block';
+    });
+  }
+
+  const charObj = {
+    id,
+    el: wrap,
+    svg: wrap.querySelector('.s-avatar-svg'),
+    name: data.name,
+    x,
+    y,
+    actionTimeout: null,
+    walkTimeout: null,
+
+    face(direction) {
+      if (this.svg) this.svg.style.transform = direction === 'left' ? 'scaleX(-1)' : 'scaleX(1)';
+    },
+
+    walkTo(tx, ty, callback) {
+      tx = Math.max(40, Math.min(window.innerWidth - 40, tx));
+      ty = Math.max(90, Math.min(window.innerHeight - 40, ty));
+
+      this.face(tx < this.x ? 'left' : 'right');
+
+      const dist = Math.hypot(tx - this.x, ty - this.y);
+      const duration = Math.max(50, dist / 0.25);
+
+      this.el.style.transitionDuration = duration + 'ms';
+      this.el.style.left = tx + 'px';
+      this.el.style.top = ty + 'px';
+      this.el.style.zIndex = Math.floor(ty);
+
+      this.x = tx;
+      this.y = ty;
+
+      this.el.classList.add('s-walking');
+      this.resetEmote();
+
+      clearTimeout(this.walkTimeout);
+      this.walkTimeout = setTimeout(() => {
+        this.el.classList.remove('s-walking');
+        if (callback) callback();
+      }, duration);
+    },
+
+    playEmote(type) {
+      this.resetEmote();
+
+      const normal = document.getElementById(`${this.id}-expr-normal`);
+      const exprEl = document.getElementById(`${this.id}-expr-${type}`);
+
+      if (exprEl && normal) {
+        normal.style.display = 'none';
+        exprEl.style.display = 'block';
+      }
+
+      this.el.classList.add(`s-anim-${type}`);
+
+      const bl = document.getElementById(`${this.id}-blush-l`);
+      const br = document.getElementById(`${this.id}-blush-r`);
+
+      if (type === 'love' || type === 'hug') {
+        if (bl) bl.style.opacity = '0.8';
+        if (br) br.style.opacity = '0.8';
+      } else if (type === 'cry') {
+        sSpawnParticles(this, 's-tear-particle', '', 6, -50, 400);
+      }
+
+      if (type !== 'dance' && type !== 'sleep') {
+        this.actionTimeout = setTimeout(() => this.resetEmote(), 2500);
+      }
+    },
+
+    resetEmote() {
+      clearTimeout(this.actionTimeout);
+
+      this.el.querySelectorAll('.s-expression').forEach((el) => {
+        el.style.display = 'none';
+      });
+
+      const normal = document.getElementById(`${this.id}-expr-normal`);
+      if (normal) normal.style.display = 'block';
+
+      const bl = document.getElementById(`${this.id}-blush-l`);
+      const br = document.getElementById(`${this.id}-blush-r`);
+      if (bl) bl.style.opacity = '0';
+      if (br) br.style.opacity = '0';
+
+      this.el.classList.remove(
+        's-anim-wave',
+        's-anim-laugh',
+        's-anim-love',
+        's-anim-angry',
+        's-anim-cry',
+        's-anim-shock',
+        's-anim-sleep',
+        's-anim-dance',
+        's-anim-hug'
+      );
+    }
+  };
+
+  if (isNPC) {
+    wrap.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sCloseBubble();
+      sOpenInteractionMenu(charObj);
+    });
+  }
+
+  sCharacters[id] = charObj;
+  return charObj;
 }
-function stopAmbient(){ if(_ambient){ clearInterval(_ambient); _ambient=null; } }
-/* ===== /CHIBI SAHNESI ===== */
+
+function sCreateDefaultNPCs() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  const x1 = Math.max(90, Math.min(w - 90, w / 2 - 180));
+  const y1 = Math.max(210, Math.min(h - 130, h / 2 - 40));
+
+  const x2 = Math.max(90, Math.min(w - 90, w / 2 + 180));
+  const y2 = Math.max(210, Math.min(h - 130, h / 2 + 70));
+
+  sCreateCharacterInWorld(
+    's-npc-1',
+    {
+      name: 'Zeynep',
+      gender: 'female',
+      hair: 'style-2',
+      colors: {
+        skin: '#f1c27d',
+        hair: '#d35400',
+        shirt: '#8e44ad',
+        pants: '#2c3e50',
+        shoes: '#bdc3c7'
+      }
+    },
+    x1,
+    y1,
+    true
+  );
+
+  sCreateCharacterInWorld(
+    's-npc-2',
+    {
+      name: 'Can',
+      gender: 'male',
+      hair: 'style-4',
+      colors: {
+        skin: '#e0ac69',
+        hair: '#2c3e50',
+        shirt: '#27ae60',
+        pants: '#ecf0f1',
+        shoes: '#34495e'
+      }
+    },
+    x2,
+    y2,
+    true
+  );
+}
+
+function sMenuPos(targetObj) {
+  return {
+    left: Math.max(90, Math.min(window.innerWidth - 90, targetObj.x)),
+    top: Math.max(150, targetObj.y - 140)
+  };
+}
+
+function sOpenInteractionMenu(targetObj) {
+  sCloseBubble();
+
+  const world = document.getElementById('sanalika-game-world');
+  if (!world) return;
+
+  const pos = sMenuPos(targetObj);
+
+  const menu = document.createElement('div');
+  menu.className = 's-request-bubble';
+  menu.style.left = pos.left + 'px';
+  menu.style.top = pos.top + 'px';
+
+  menu.innerHTML = `
+    <span>${targetObj.name} ile etkileşime gir:</span>
+    <div class="s-req-buttons">
+      <button type="button" class="s-req-btn s-btn-hug" onclick="sSendActionRequest('${targetObj.id}', 'hug', event)">🫂 Sarıl</button>
+      <button type="button" class="s-req-btn s-btn-dance" onclick="sSendActionRequest('${targetObj.id}', 'dance', event)">💃 Dans Et</button>
+    </div>
+  `;
+
+  world.appendChild(menu);
+  sActiveUIBubble = menu;
+}
+
+window.sSendActionRequest = function (targetId, actionType, e) {
+  if (e) e.stopPropagation();
+  sCloseBubble();
+
+  const targetObj = sCharacters[targetId];
+  if (!targetObj || !sPlayerRef) return;
+
+  const isLeft = sPlayerRef.x < targetObj.x;
+  const waitX = isLeft ? targetObj.x - 55 : targetObj.x + 55;
+
+  sPlayerRef.walkTo(waitX, targetObj.y, () => {
+    sPlayerRef.face(isLeft ? 'right' : 'left');
+    targetObj.face(isLeft ? 'left' : 'right');
+
+    const world = document.getElementById('sanalika-game-world');
+    if (!world) return;
+
+    const pos = sMenuPos(targetObj);
+    const actionTr = actionType === 'hug' ? 'sarılmak' : 'dans etmek';
+
+    const menu = document.createElement('div');
+    menu.className = 's-request-bubble';
+    menu.style.left = pos.left + 'px';
+    menu.style.top = pos.top + 'px';
+
+    menu.innerHTML = `
+      <span>${sPlayerRef.name} seninle ${actionTr} istiyor!</span>
+      <div class="s-req-buttons">
+        <button type="button" class="s-req-btn s-btn-accept" onclick="sProcessActionResponse('${targetId}', '${actionType}', true, event)">✓ Kabul Et</button>
+        <button type="button" class="s-req-btn s-btn-reject" onclick="sProcessActionResponse('${targetId}', '${actionType}', false, event)">✗ Reddet</button>
+      </div>
+    `;
+
+    world.appendChild(menu);
+    sActiveUIBubble = menu;
+  });
+};
+
+window.sProcessActionResponse = function (targetId, actionType, isAccepted, e) {
+  if (e) e.stopPropagation();
+  sCloseBubble();
+
+  const targetObj = sCharacters[targetId];
+  if (!targetObj || !sPlayerRef) return;
+
+  const isLeft = sPlayerRef.x < targetObj.x;
+
+  if (isAccepted) {
+    if (actionType === 'hug') {
+      const hugX = isLeft ? targetObj.x - 25 : targetObj.x + 25;
+
+      sPlayerRef.walkTo(hugX, targetObj.y, () => {
+        sPlayerRef.playEmote('hug');
+        targetObj.playEmote('hug');
+        sSpawnParticles(targetObj, 's-heart-particle', '❤️', 4, -70);
+      });
+    } else if (actionType === 'dance') {
+      sPlayerRef.playEmote('dance');
+      targetObj.playEmote('dance');
+    }
+  } else {
+    targetObj.playEmote('angry');
+    sPlayerRef.playEmote('cry');
+  }
+};
+
+function sSpawnParticles(charObj, className, text, count, yOffset, delay = 200) {
+  const world = document.getElementById('sanalika-game-world');
+  if (!world) return;
+
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = `s-particle ${className}`;
+      p.innerText = text;
+
+      p.style.left = charObj.x + (Math.random() * 40 - 20) + 'px';
+      p.style.top = charObj.y + yOffset + (Math.random() * 20 - 10) + 'px';
+
+      world.appendChild(p);
+      setTimeout(() => p.remove(), 2000);
+    }, i * delay);
+  }
+}
+
+function setupSanalika() {
+  sBuild();
+
+  const bar = document.getElementById('tabbar');
+  if (!bar || document.getElementById('sanalika-tab-btn')) return;
+
+  if (!document.getElementById('sanalika-tabbar-fix')) {
+    const fx = document.createElement('style');
+    fx.id = 'sanalika-tabbar-fix';
+    fx.textContent = '#tabbar>*{flex:1 1 0 !important;min-width:0 !important;width:auto !important;}';
+    document.head.appendChild(fx);
+  }
+
+  const btn = document.createElement('button');
+  btn.id = 'sanalika-tab-btn';
+  btn.type = 'button';
+  btn.className = 'tab';
+  btn.setAttribute('aria-label', 'Sanalika');
+  btn.style.color = 'var(--metin)';
+
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+      <line x1="9" y1="9" x2="9.01" y2="9"></line>
+      <line x1="15" y1="9" x2="15.01" y2="9"></line>
+    </svg>
+  `;
+
+  btn.addEventListener('click', () => window.sOpen());
+  bar.appendChild(btn);
+}
+/* ===== /SANALIKA SAHNESI ===== */
 
 async function registerPush(){
-  setupAvatarFab();
+  setupSanalika();
   if(!UID) return;
   if(!('Notification' in window)) return;
   if(Notification.permission==='denied') return;
