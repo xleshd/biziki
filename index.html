@@ -659,11 +659,17 @@ function petNotify(c){
   check('happy',  c.happy<25,  name+' mutsuz', 'Biraz ilgi ister misin');
 }
 function notifyOthers(title, body){
+  if(!CODE) return;
   try{
     fetch('https://biziki-push.biziki.workers.dev/', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ title, body, excludeUid: UID })
+      body: JSON.stringify({
+        coupleCode: CODE,
+        excludeUid: UID,
+        title: 'Bizİki 💕',
+        body: 'Yeni bir mesajın var 💌'
+      })
     }).catch(()=>{});
   }catch(e){}
 }
@@ -2318,22 +2324,30 @@ function resetFloor(){ try{ localStorage.removeItem(petFloorKey()); }catch(e){} 
 
 function petBarsKey(){ return 'biziki_petbars_' + (CODE||'_'); }
 function careTKey(){ return 'biziki_caret_' + (CODE||'_'); }
-function readBars(){ try{ const b=JSON.parse(localStorage.getItem(petBarsKey())); return (b&&typeof b==='object')? b : null; }catch(e){ return null; } }
-function writeBars(c){ try{ localStorage.setItem(petBarsKey(), JSON.stringify({hunger:c.hunger,happy:c.happy,energy:c.energy,clean:c.clean})); }catch(e){} }
+function careAtOf(p){ const lc=p&&p.lastCare; const v=lc&&(lc.at&&lc.at.toMillis?lc.at.toMillis():lc.at); return Number(v)||0; }
+function decayOf(bars, fromMs, toMs){ const h=Math.max(0,(toMs-fromMs)/3600000); return { hunger:clamp((bars.hunger??80)-h*2.5), happy:clamp((bars.happy??80)-h*2.2), energy:clamp((bars.energy??80)-h*1.8), clean:clamp((bars.clean??80)-h*2) }; }
+function readAcc(){ try{ const o=JSON.parse(localStorage.getItem(petBarsKey())); if(o&&typeof o==='object'){ if(o.bars) return {bars:o.bars, tick:Number(o.tick)||0, careAt:Number(o.careAt)||0}; if('hunger' in o) return {bars:{hunger:o.hunger,happy:o.happy,energy:o.energy,clean:o.clean}, tick:Number(o.tick)||0, careAt:Number(o.careAt)||0}; } }catch(e){} return null; }
+function writeAcc(bars, tick, careAt){ try{ localStorage.setItem(petBarsKey(), JSON.stringify({bars:bars, tick:tick, careAt:careAt})); }catch(e){} }
 function markCare(){ try{ localStorage.setItem(careTKey(), String(Date.now())); }catch(e){} }
 function recentCare(){ return (Date.now() - (Number(localStorage.getItem(careTKey()))||0)) < 60000; }
+function writeBars(c){ const p=(typeof DB!=='undefined'&&DB.pet)||null; writeAcc({hunger:c.hunger,happy:c.happy,energy:c.energy,clean:c.clean}, Date.now(), careAtOf(p)); }
+function readBars(){ const a=readAcc(); return a?a.bars:null; }
 function barFilter(cloudPet){
-  const stored = readBars();
-  const cv0 = {hunger:cloudPet.hunger,happy:cloudPet.happy,energy:cloudPet.energy,clean:cloudPet.clean};
-  if(!stored) return cv0;
-  const rc = recentCare();
-  const f = (cv, sv) => (!rc && sv!=null && (cv - sv) > 18) ? sv : cv;
-  return {
-    hunger: f(cv0.hunger, stored.hunger),
-    happy:  f(cv0.happy,  stored.happy),
-    energy: f(cv0.energy, stored.energy),
-    clean:  f(cv0.clean,  stored.clean)
-  };
+  const now=Date.now();
+  const inTick=tickMs(cloudPet);
+  const inCare=careAtOf(cloudPet);
+  const inNow=decayOf({hunger:cloudPet.hunger,happy:cloudPet.happy,energy:cloudPet.energy,clean:cloudPet.clean}, inTick, now);
+  const acc=readAcc();
+  let out;
+  if(!acc){ out=inNow; }
+  else {
+    const accNow=decayOf(acc.bars, acc.tick||now, now);
+    const careHappened = inCare>0 && inCare>(acc.careAt||0);
+    if(careHappened){ out=inNow; }
+    else { out={ hunger:Math.min(inNow.hunger, accNow.hunger), happy:Math.min(inNow.happy, accNow.happy), energy:Math.min(inNow.energy, accNow.energy), clean:Math.min(inNow.clean, accNow.clean) }; }
+  }
+  writeAcc(out, now, Math.max(inCare, (acc&&acc.careAt)||0));
+  return out;
 }
 function resetBars(){ try{ localStorage.removeItem(petBarsKey()); localStorage.removeItem(careTKey()); }catch(e){} }
 
