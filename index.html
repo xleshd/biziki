@@ -2906,5 +2906,71 @@ setInterval(()=>{
   }
 })();
 </script>
+<!-- ===== AKTİVİTE IŞIKLARI (çevrimiçi / çevrimdışı) ===== -->
+<script type="module">
+(function(){
+  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  ready(function(){
+    var CODE=null, ME=0, lastSent=0;
+    var wrap=document.getElementById('coupleWrap');
+    if(!wrap) wrap=document.querySelector('.couple');
+    if(!wrap){ return; }
+    var persons=wrap.querySelectorAll('.person');
+    if(persons.length<2){ return; }
+    var av1=persons[0].querySelector('.avatar'), av2=persons[1].querySelector('.avatar');
+    if(!av1||!av2){ return; }
+    [av1,av2].forEach(function(a){
+      var d=document.createElement('span'); d.className='presence-dot'; d.style.display='none'; a.appendChild(d);
+    });
+    var d1=av1.querySelector('.presence-dot'), d2=av2.querySelector('.presence-dot');
+
+    function stampDot(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
+    function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<120000; }
+    function paint(s){
+      if(!s||!s.exists) return;
+      var f=s.fields||{};
+      var a1=f.online1?(f.online1.integerValue||f.online1.doubleValue||0):0;
+      var a2=f.online2?(f.online2.integerValue||f.online2.doubleValue||0):0;
+      stampDot(d1, isOn(a1)); stampDot(d2, isOn(a2));
+    }
+    function send(){
+      if(!CODE) return;
+      var now=Date.now();
+      if(now-lastSent<45000) return;
+      lastSent=now;
+      var body={}; body['online'+(ME===0?1:2)]={ integerValue: now };
+      fetch('https://biziki-push.biziki.workers.dev/presence?code='+encodeURIComponent(CODE), {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+      }).catch(function(){});
+    }
+    function watch(){
+      if(!CODE) return;
+      var es=new EventSource('https://biziki-push.biziki.workers.dev/presence?code='+encodeURIComponent(CODE)+'&stream=1');
+      es.onmessage=function(e){ try{ paint(JSON.parse(e.data)); }catch(_){} };
+      es.onerror=function(){ try{es.close();}catch(_){} setTimeout(watch, 5000); };
+    }
+    function syncMeta(){
+      fetch('https://biziki-push.biziki.workers.dev/meta?code='+encodeURIComponent(CODE))
+        .then(function(r){return r.json();}).then(function(j){
+          if(j&&j.ok&&j.data){
+            CODE=j.data.coupleCode||null; ME=Number(j.data.me)||0;
+            paint(j.data); send(); watch();
+          }
+        }).catch(function(){});
+    }
+    var t=setInterval(syncMeta, 3000);
+    setTimeout(function(){ clearInterval(t); }, 20000);
+    document.addEventListener('visibilitychange', function(){ if(!document.hidden) syncMeta(); });
+  });
+})();
+</script>
+<style>
+  .person .avatar{ position:relative; }
+  .presence-dot{
+    position:absolute; right:2px; bottom:2px; width:15px; height:15px; border-radius:50%;
+    background:#b9b3bd; border:2.5px solid var(--krem2, #fffaf2); box-sizing:border-box; z-index:2;
+  }
+  .presence-dot.on{ background:#3ddc84; box-shadow:0 0 0 2px rgba(61,220,132,.25); }
+</style>
 </body>
 </html>
