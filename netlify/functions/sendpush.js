@@ -30,17 +30,14 @@ async function pushToTokens(tokens, title, body) {
   const res = await admin.messaging().sendEachForMulticast({ tokens, notification: { title, body } });
   return res.successCount;
 }
-async function pushToAll(title, body, excludeUid) {
-  const snap = await db.collection('users').get();
-  const tokens = [];
-  snap.forEach(d => { if (excludeUid && d.id === excludeUid) return; const t = d.data().fcmToken; if (t) tokens.push(t); });
-  return pushToTokens(tokens, title, body);
-}
-async function pushToCouple(code, title, body) {
+
+// SADECE bu ciftin iki kisine calar; excludeUid = gonderen (ona calmasin)
+async function pushToCouple(code, title, body, excludeUid) {
+  if (!code) return 0;
   const info = await db.collection('couples').doc(code).collection('meta').doc('info').get();
   if (!info.exists) return 0;
   const s = info.data();
-  const uids = [s.uid1, s.uid2].filter(Boolean);
+  const uids = [s.uid1, s.uid2].filter(Boolean).filter(u => u !== excludeUid);
   const tokens = [];
   for (const uid of uids) {
     const u = await db.collection('users').doc(uid).get();
@@ -48,6 +45,7 @@ async function pushToCouple(code, title, body) {
   }
   return pushToTokens(tokens, title, body);
 }
+// NOT: pushToAll (herkese gonderen) fonksiyonu SILINDI — sizinti kaynagi oydu.
 
 async function scanPets(force) {
   const couples = await db.collection('couples').get();
@@ -90,18 +88,26 @@ async function scanPets(force) {
 exports.handler = async (event) => {
   try {
     const q = event.queryStringParameters || {};
+
+    // MESAJ YOLU: sadece ciftin diger kisine, icerik sabit (sizma imkansiz)
     if (event.httpMethod === 'POST') {
       let p = {}; try { p = JSON.parse(event.body || '{}'); } catch (_) {}
-      const title = p.title || 'BizIki';
-      const body = p.body || '';
-      if (!body) return { statusCode: 200, body: JSON.stringify({ ok: true, note: 'bos body' }) };
-      const success = await pushToAll(title, body, p.excludeUid || null);
+      const code = p.coupleCode;
+      if (!code) {
+        // cift kodu yoksa HICBIR YERE gonderme (eski istemci / bilinmeyen = sessizce iptal)
+        return { statusCode: 200, body: JSON.stringify({ ok: true, note: 'coupleCode yok, gonderilmedi' }) };
+      }
+      const success = await pushToCouple(code, 'Bizİki 💕', 'Yeni bir mesajın var 💌', p.excludeUid || null);
       return { statusCode: 200, body: JSON.stringify({ ok: true, success }) };
     }
+
+    // TEST: artik cift kodu ister (acik spam kapisi kapatildi)
     if (q.test === '1') {
-      const success = await pushToAll('BizIki', 'Kapaliyken bildirim testi calisti!', null);
+      if (!q.code) return { statusCode: 200, body: JSON.stringify({ ok: false, note: 'test icin code= gereklidir' }) };
+      const success = await pushToCouple(q.code, 'Bizİki', 'Kapaliyken bildirim testi calisti!');
       return { statusCode: 200, body: JSON.stringify({ ok: true, success }) };
     }
+
     const r = await scanPets(q.force === '1');
     return { statusCode: 200, body: JSON.stringify({ ok: true, mode: 'petscan', ...r }) };
   } catch (e) {
