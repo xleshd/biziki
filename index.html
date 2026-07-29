@@ -2910,68 +2910,56 @@ setInterval(()=>{
 <script type="module">
 import { getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 (function(){
-  function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
-  ready(function(){
-    var CODE=null, ME=0, UID=null, lastSent=0;
-    var wrap=document.getElementById('coupleWrap');
-    if(!wrap) wrap=document.querySelector('.couple');
-    if(!wrap) return;
-    var persons=wrap.querySelectorAll('.person');
-    if(persons.length<2) return;
-    var av1=persons[0].querySelector('.avatar'), av2=persons[1].querySelector('.avatar');
-    if(!av1||!av2) return;
-    [av1,av2].forEach(function(a){
-      var d=document.createElement('span'); d.className='presence-dot'; d.style.display='none'; a.appendChild(d);
-    });
-    var d1=av1.querySelector('.presence-dot'), d2=av2.querySelector('.presence-dot');
-
-    function stampDot(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
-    function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<120000; }
-    function paint(s){
-if(!s) return;
-var d = (s.online1!=null || s.online2!=null) ? s : (s.data || {});
-var a1=Number(d.online1)||0;
-var a2=Number(d.online2)||0;
-stampDot(d1, isOn(a1)); stampDot(d2, isOn(a2));
+function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+ready(function(){
+var CODE=null, ME=0, UID=null;
+var wrap=document.querySelector('.couple');
+if(!wrap) return;
+var persons=wrap.querySelectorAll('.person');
+if(persons.length<2) return;
+var av1=persons[0].querySelector('.avatar'), av2=persons[1].querySelector('.avatar');
+if(!av1||!av2) return;
+[av1,av2].forEach(function(a){ if(!a.querySelector('.presence-dot')){ var d=document.createElement('span'); d.className='presence-dot'; d.style.display='none'; a.appendChild(d); } });
+var d1=av1.querySelector('.presence-dot'), d2=av2.querySelector('.presence-dot');
+function stampDot(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
+function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<60000; }
+function paint(o1,o2){ stampDot(d1, isOn(o1)); stampDot(d2, isOn(o2)); }
+function infoRef(){ return doc(getFirestore(getApp()),'couples',CODE,'meta','info'); }
+function heartbeat(){
+if(!CODE||UID==null) return;
+var field = (ME===0)?'online1':'online2';
+updateDoc(infoRef(), {[field]: Date.now()}).catch(function(){});
 }
-    function send(){
-      if(!CODE||!UID) return;
-      var now=Date.now();
-      if(now-lastSent<45000) return;
-      lastSent=now;
-      fetch('https://biziki-push.biziki.workers.dev/presence?code='+encodeURIComponent(CODE), {
-        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ uid:UID })
-      }).catch(function(){});
-    }
-    function watch(){
-      if(!CODE||!UID) return;
-      var es=new EventSource('https://biziki-push.biziki.workers.dev/presence?code='+encodeURIComponent(CODE)+'&uid='+encodeURIComponent(UID)+'&stream=1');
-      es.onmessage=function(e){ try{ paint(JSON.parse(e.data)); }catch(_){} };
-      es.onerror=function(){ try{es.close();}catch(_){} setTimeout(watch, 5000); };
-    }
-    function syncMeta(){
-      if(!CODE||!UID) return;
-      fetch('https://biziki-push.biziki.workers.dev/meta?code='+encodeURIComponent(CODE)+'&uid='+encodeURIComponent(UID))
-        .then(function(r){return r.json();}).then(function(j){
-          if(j&&j.ok&&j.data){ ME=Number(j.data.me)||0; paint(j.data); send(); }
-        }).catch(function(){});
-    }
-    // Firebase'den kendi uid + coupleCode al
-    try {
-      var app=getApp(); var auth=getAuth(app); var db=getFirestore(app);
-      onAuthStateChanged(auth, function(user){
-        if(!user){ UID=null; return; }
-        UID=user.uid;
-        getDoc(doc(db,'users',UID)).then(function(s){
-          if(s.exists()){ CODE=s.data().coupleCode||null; syncMeta(); watch(); }
-        }).catch(function(){});
-      });
-    } catch(e){}
-    var t=setInterval(syncMeta, 30000);
-    document.addEventListener('visibilitychange', function(){ if(!document.hidden) syncMeta(); });
-  });
+var liveUnsub=null, beatTimer=null;
+function start(){
+if(!CODE||UID==null||liveUnsub) return;
+liveUnsub = onSnapshot(infoRef(), function(s){
+if(!s.exists()) return;
+var f=s.data()||{};
+paint(f.online1, f.online2);
+}, function(){});
+heartbeat();
+if(beatTimer) clearInterval(beatTimer);
+beatTimer=setInterval(heartbeat, 20000);
+}
+function stop(){ if(liveUnsub){ liveUnsub(); liveUnsub=null; } if(beatTimer){ clearInterval(beatTimer); beatTimer=null; } }
+try{
+var app=getApp(); var auth=getAuth(app); var db=getFirestore(app);
+onAuthStateChanged(auth, function(user){
+if(!user){ UID=null; stop(); return; }
+UID=user.uid;
+getDoc(doc(db,'users',UID)).then(function(s){
+if(s.exists()){ CODE=s.data().coupleCode||null; ME=Number(s.data().slot)||0; start(); }
+}).catch(function(){});
+});
+}catch(e){}
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) heartbeat(); });
+window.addEventListener('beforeunload', function(){
+if(CODE&&UID!=null){ var field=(ME===0)?'online1':'online2'; updateDoc(infoRef(),{[field]:0}).catch(function(){}); }
+});
+});
 })();
 </script>
 <style>
