@@ -490,7 +490,7 @@ function daysUntilBday(dateStr){
 
 function showAuth(){ $('authScreen').classList.remove('hide'); $('matchScreen').classList.add('hide'); $('tabbar').classList.add('hide'); }
 function showMatch(){ $('authScreen').classList.add('hide'); $('matchScreen').classList.remove('hide'); $('tabbar').classList.add('hide'); }
-window.enterApp = ()=>{ $('authScreen').classList.add('hide'); $('matchScreen').classList.add('hide'); $('tabbar').classList.remove('hide'); startSync(); };
+window.enterApp = ()=>{ $('authScreen').classList.add('hide'); $('matchScreen').classList.add('hide'); $('tabbar').classList.remove('hide'); try{ if(UID){ updateDoc(userDoc(UID), { chatOpen:false }).catch(function(){}); } }catch(e){} startSync(); };
 
 function applyThemeUI(dark){ $('themeToggle').checked = dark; $('themeIcon').innerHTML = dark ? SUN_SVG : MOON_SVG; }
 window.toggleTheme = function(on){
@@ -616,7 +616,8 @@ function startSync(){
 }
 
 window.go = function(name){
-  current=name;
+ current=name;
+try{ if(UID){ updateDoc(userDoc(UID), { chatOpen: name==='chat' }).catch(function(){}); } }catch(e){}
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active', s.dataset.screen===name));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on', t.dataset.tab===name));
   document.querySelector('.screen.active').scrollTop=0;
@@ -2820,6 +2821,11 @@ window.deleteAccount = async function(){
 };
 
 setInterval(()=>{
+  // ===== SOHBET AÇIKKEN BİLDİRİM SUS (postacıya "rahatsız etme" işareti) =====
+function writeChatOpen(on){ try{ if(UID){ updateDoc(userDoc(UID), { chatOpen: !!on }).catch(function(){}); } }catch(e){} }
+document.addEventListener('visibilitychange', function(){ writeChatOpen(!document.hidden && current==='chat'); });
+window.addEventListener('beforeunload', function(){ writeChatOpen(false); });
+window.addEventListener('pagehide', function(){ writeChatOpen(false); });
   if(current==='pet' && DB.pet && !tempFace){ tickPet(); }
   else if(current==='home' && DB.pet){ tickMini(); }
   if(DB.pet){ const c=decay(DB.pet); petNotify(c); writeBars(c); }
