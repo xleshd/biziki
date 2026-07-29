@@ -3130,5 +3130,92 @@ window.addEventListener('beforeunload', function(){ if(CODE&&UID!=null){ updateD
 });
 })();
 </script>
+<!-- ===== YAZIYOR... BİLGİSİ (WhatsApp tarzı, doğrudan deftere yazar/okur) ===== -->
+<script type="module">
+import { getApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+(function(){
+function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+ready(function(){
+var CODE=null, ME=0, UID=null;
+var db=getFirestore(getApp());
+var lastSent=0, stopT=null, lastOtherT=0, ind=null, tick=null, unsub=null;
+
+/* --- görünüşü bir kez ekle (CSS + kutu) --- */
+if(!document.getElementById('typing-css')){
+  var st=document.createElement('style'); st.id='typing-css';
+  st.textContent='.typing-ind{display:none;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--soluk,#8a7d86);padding:2px 6px 8px;min-height:18px;}'
+    +'.typing-ind.on{display:flex;}'
+    +'.typing-ind .dots{display:inline-flex;gap:3px;}'
+    +'.typing-ind .dots i{width:5px;height:5px;border-radius:50%;background:var(--soluk,#8a7d86);display:inline-block;animation:typdot 1.2s infinite ease-in-out;}'
+    +'.typing-ind .dots i:nth-child(2){animation-delay:.2s;}'
+    +'.typing-ind .dots i:nth-child(3){animation-delay:.4s;}'
+    +'@keyframes typdot{0%,80%,100%{opacity:.3;transform:translateY(0);}40%{opacity:1;transform:translateY(-3px);}}';
+  document.head.appendChild(st);
+}
+function box(){
+  if(ind) return ind;
+  var wrap=document.getElementById('chatWrap'); if(!wrap) return null;
+  ind=document.createElement('div'); ind.className='typing-ind';
+  ind.innerHTML='<span>yazıyor</span><span class="dots"><i></i><i></i><i></i></span>';
+  wrap.parentNode.insertBefore(ind, wrap.nextSibling); /* mesajların altı, yazma kutusunun üstü */
+  return ind;
+}
+
+function typingRef(){ return doc(db,'couples',CODE,'meta','typing'); }
+function writeTyping(on){
+  if(!CODE||UID==null) return;
+  setDoc(typingRef(), { ['t'+ME]: on ? Date.now() : 0 }, { merge:true }).catch(function(){});
+}
+function stopTyping(){ if(stopT){ clearTimeout(stopT); stopT=null; } lastSent=0; writeTyping(false); }
+
+/* --- sen yazarken: sinyali gönder (gereksiz kalabalık olmasın diye aralıklı) --- */
+function onInput(){
+  var now=Date.now();
+  if(now-lastSent>1800){ lastSent=now; writeTyping(true); }
+  if(stopT) clearTimeout(stopT);
+  stopT=setTimeout(stopTyping, 2500); /* 2.5 sn yazmazsan "yazıyor" kendiliğinden düşer */
+}
+function bindInput(){
+  var inp=document.getElementById('chatText');
+  if(inp && !inp._typBound){ inp._typBound=true; inp.addEventListener('input', onInput); }
+  /* mesajı gönderince sinyali hemen kapat */
+  if(typeof window.addChat==='function' && !window._typWrap){
+    window._typWrap=true; var orig=window.addChat;
+    window.addChat=function(){ stopTyping(); return orig.apply(this, arguments); };
+  }
+}
+
+/* --- karşı taraf yazarken: "yazıyor..."u göster --- */
+function refresh(data){
+  var b=box(); if(!b) return;
+  var t=data ? Number(data['t'+(1-ME)])||0 : 0;
+  lastOtherT=t;
+  var on = t>0 && (Date.now()-t)<5000;
+  b.classList.toggle('on', on);
+}
+function startSync(){
+  if(!CODE||UID==null||unsub) return;
+  unsub=onSnapshot(typingRef(), function(s){ refresh(s.exists()?s.data():null); }, function(){});
+  if(tick) clearInterval(tick);
+  tick=setInterval(function(){ /* sinyal eski kaldıysa (sekme kapandıysa) söndür */
+    if(lastOtherT>0 && (Date.now()-lastOtherT)>=5000){ var b=box(); if(b) b.classList.remove('on'); }
+  }, 1500);
+}
+
+try{
+  var auth=getAuth(getApp());
+  onAuthStateChanged(auth, function(u){
+    if(!u){ UID=null; return; }
+    UID=u.uid;
+    getDoc(doc(db,'users',UID)).then(function(s){
+      if(s.exists()){ CODE=s.data().coupleCode||null; ME=Number(s.data().slot)||0; bindInput(); startSync(); }
+    }).catch(function(){});
+  });
+}catch(e){}
+});
+})();
+</script>
 </body>
 </html>
