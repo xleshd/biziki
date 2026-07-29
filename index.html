@@ -2930,12 +2930,12 @@ import { getFirestore, doc, getDoc } from 'firebase/firestore';
     function stampDot(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
     function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<120000; }
     function paint(s){
-      if(!s||!s.exists) return;
-      var f=s.fields||{};
-      var a1=f.online1?(f.online1.integerValue||f.online1.doubleValue||0):0;
-      var a2=f.online2?(f.online2.integerValue||f.online2.doubleValue||0):0;
-      stampDot(d1, isOn(a1)); stampDot(d2, isOn(a2));
-    }
+if(!s) return;
+var d = (s.online1!=null || s.online2!=null) ? s : (s.data || {});
+var a1=Number(d.online1)||0;
+var a2=Number(d.online2)||0;
+stampDot(d1, isOn(a1)); stampDot(d2, isOn(a2));
+}
     function send(){
       if(!CODE||!UID) return;
       var now=Date.now();
