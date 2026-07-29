@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Bizİki</title>
+<title>Bizİki TEST</title>
 <script>
   try{ if(localStorage.getItem('biziki_theme')==='dark') document.documentElement.setAttribute('data-theme','dark'); }catch(e){}
 </script>
@@ -2906,7 +2906,7 @@ setInterval(()=>{
   }
 })();
 </script>
-<!-- ===== AKTİVİTE IŞIKLARI (çevrimiçi / çevrimdışı) ===== -->
+<!-- ===== AKTİVİTE IŞIKLARI (DOĞRUDAN deftere bakar, postacı yok) ===== -->
 <script type="module">
 import { getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -2915,50 +2915,34 @@ import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from 'firebase/fires
 function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
 ready(function(){
 var CODE=null, ME=0, UID=null;
-var wrap=document.querySelector('.couple');
-if(!wrap) return;
-var persons=wrap.querySelectorAll('.person');
-if(persons.length<2) return;
+var wrap=document.querySelector('.couple'); if(!wrap) return;
+var persons=wrap.querySelectorAll('.person'); if(persons.length<2) return;
 var av1=persons[0].querySelector('.avatar'), av2=persons[1].querySelector('.avatar');
 if(!av1||!av2) return;
-[av1,av2].forEach(function(a){ if(!a.querySelector('.presence-dot')){ var d=document.createElement('span'); d.className='presence-dot'; d.style.display='none'; a.appendChild(d); } });
+[av1,av2].forEach(function(a){ if(!a.querySelector('.presence-dot')){ var d=document.createElement('span'); d.className='presence-dot'; a.appendChild(d); } });
 var d1=av1.querySelector('.presence-dot'), d2=av2.querySelector('.presence-dot');
-function stampDot(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
-function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<60000; }
-function paint(o1,o2){ stampDot(d1, isOn(o1)); stampDot(d2, isOn(o2)); }
-function infoRef(){ return doc(getFirestore(getApp()),'couples',CODE,'meta','info'); }
-function heartbeat(){
-if(!CODE||UID==null) return;
-var field = (ME===0)?'online1':'online2';
-updateDoc(infoRef(), {[field]: Date.now()}).catch(function(){});
-}
-var liveUnsub=null, beatTimer=null;
+function show(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
+function fresh(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<90000; }
+function paint(o1,o2){ show(d1,fresh(o1)); show(d2,fresh(o2)); }
+function ref(){ return doc(getFirestore(getApp()),'couples',CODE,'meta','info'); }
+function beat(){ if(!CODE||UID==null) return; var f=(ME===0)?'online1':'online2'; updateDoc(ref(),{[f]:Date.now()}).catch(function(){}); }
+var unsub=null, timer=null;
 function start(){
-if(!CODE||UID==null||liveUnsub) return;
-liveUnsub = onSnapshot(infoRef(), function(s){
-if(!s.exists()) return;
-var f=s.data()||{};
-paint(f.online1, f.online2);
-}, function(){});
-heartbeat();
-if(beatTimer) clearInterval(beatTimer);
-beatTimer=setInterval(heartbeat, 20000);
+if(!CODE||UID==null||unsub) return;
+unsub=onSnapshot(ref(), function(s){ if(s.exists()){ var d=s.data()||{}; paint(d.online1,d.online2); } }, function(){});
+beat(); if(timer) clearInterval(timer); timer=setInterval(beat,20000);
 }
-function stop(){ if(liveUnsub){ liveUnsub(); liveUnsub=null; } if(beatTimer){ clearInterval(beatTimer); beatTimer=null; } }
+function stop(){ if(unsub){unsub();unsub=null;} if(timer){clearInterval(timer);timer=null;} }
 try{
-var app=getApp(); var auth=getAuth(app); var db=getFirestore(app);
-onAuthStateChanged(auth, function(user){
-if(!user){ UID=null; stop(); return; }
-UID=user.uid;
-getDoc(doc(db,'users',UID)).then(function(s){
-if(s.exists()){ CODE=s.data().coupleCode||null; ME=Number(s.data().slot)||0; start(); }
-}).catch(function(){});
+var app=getApp(), auth=getAuth(app), db=getFirestore(app);
+onAuthStateChanged(auth, function(u){
+if(!u){ UID=null; stop(); return; }
+UID=u.uid;
+getDoc(doc(db,'users',UID)).then(function(s){ if(s.exists()){ CODE=s.data().coupleCode||null; ME=Number(s.data().slot)||0; start(); } }).catch(function(){});
 });
 }catch(e){}
-document.addEventListener('visibilitychange', function(){ if(!document.hidden) heartbeat(); });
-window.addEventListener('beforeunload', function(){
-if(CODE&&UID!=null){ var field=(ME===0)?'online1':'online2'; updateDoc(infoRef(),{[field]:0}).catch(function(){}); }
-});
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) beat(); });
+window.addEventListener('beforeunload', function(){ if(CODE&&UID!=null){ updateDoc(ref(),{[(ME===0)?'online1':'online2']:0}).catch(function(){}); } });
 });
 })();
 </script>
