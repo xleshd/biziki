@@ -410,6 +410,7 @@ const db  = getFirestore(app);
 const THEME_KEY = 'biziki_theme';
 let CODE = null, ME = 0, UID = null;
 let DB = { settings:{name1:'—',name2:'',start:'',photo1:'',photo2:'',bday1:'',bday2:''}, notes:[], chat:[], photos:[], events:[], qa:{}, pet:null };
+window.__BZ = () => ({ DB, ME, CODE, col, renderChat, esc });
 let current = 'home';
 let unsubs = [];
 let authMode = 'login';
@@ -2665,7 +2666,14 @@ const mine = m.authorIdx===ME;
 const mt = m.ts && m.ts.toMillis ? m.ts.toMillis() : 0;
 const read = mine && otherReadMs>0 && mt<=otherReadMs;
 const tick = mine ? `<div class="chat-tick${read?' read':''}">${read?'Okundu':'✓'}</div>` : '';
-return `<div class="bubble ${mine?'right':'left'}"><div class="who">${esc(m.author)}</div>${esc(m.text)}${tick}</div>`;
+const pending = !!(window.__pendingDelete && window.__pendingDelete.has(m.id));
+let quote='';
+if(m.replyTo){
+  const qt=(m.replyTo.text||'').length>60?(m.replyTo.text||'').slice(0,60)+'…':(m.replyTo.text||'');
+  quote=`<div class="chat-quote" data-goto="${esc(m.replyTo.id||'')}"><b>${esc(m.replyTo.author||'')}</b><span>${esc(qt)}</span></div>`;
+}
+const edited=(mine && m.edited)?'<span class="chat-edited">düzenlendi</span>':'';
+return `<div class="bubble ${mine?'right':'left'}${pending?' del-pending':''}" data-id="${esc(m.id)}"><div class="who">${esc(m.author)}</div>${quote}<div class="chat-text">${esc(m.text)}</div>${edited}${tick}</div>`;
 }).join('');
 w.scrollTop=w.scrollHeight;
 markChatRead();
@@ -2680,10 +2688,23 @@ const lastMs = last.ts && last.ts.toMillis ? last.ts.toMillis() : 0;
 if(lastMs > myReadMs){ try{ updateDoc(metaDoc(), { ['read'+ME]: serverTimestamp() }); }catch(e){} }
 }
 let _chatLock=0;
-window.addChat = async ()=>{ const now=Date.now(); if(now-_chatLock<1200) return; _chatLock=now; const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
-  await addDoc(col('chat'), { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() });
-  notifyOthers(myName(), t);
-    window.sfxSend && window.sfxSend();
+window.addChat = async ()=>{
+const now=Date.now(); if(now-_chatLock<900) return; _chatLock=now;
+const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
+const editId = window.__editId || null;
+const reply  = window.__reply || null;
+window.__editId = null; window.__reply = null;
+window.__clearChatBar && window.__clearChatBar();
+if(editId){
+  try{ await updateDoc(doc(db,'couples',CODE,'chat',editId), { text:t, edited:true }); }catch(e){}
+  window.sfxSend && window.sfxSend();
+  return;
+}
+const msg = { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() };
+if(reply){ msg.replyTo = { id:reply.id, author:reply.author, text:reply.text }; }
+await addDoc(col('chat'), msg);
+notifyOthers(myName(), t);
+window.sfxSend && window.sfxSend();
 };
 
 function compress(file, maxW, targetBytes){
@@ -3214,6 +3235,170 @@ try{
     }).catch(function(){});
   });
 }catch(e){}
+});
+})();
+</script>
+<!-- ===== MESAJ MENÜSÜ: yanıtla / düzenle / sil (basılı tut veya sağ tık) ===== -->
+<script type="module">
+import { getApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+(function(){
+function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+ready(function(){
+const BZ = window.__BZ; if(!BZ) return;
+const db = getFirestore(getApp());
+window.__pendingDelete = window.__pendingDelete || new Set();
+
+/* ---- görünüş ---- */
+if(!document.getElementById('bz-msg-css')){
+  const st=document.createElement('style'); st.id='bz-msg-css';
+  st.textContent=
+  '.bubble{ -webkit-user-select:none; user-select:none; cursor:default; }'+
+  '.bz-ctx{ position:fixed; z-index:9600; min-width:156px; background:var(--krem,#fff); color:var(--metin,#222); border-radius:14px; box-shadow:0 14px 38px rgba(40,20,30,.34); padding:6px; display:none; border:1px solid var(--border-soft,rgba(0,0,0,.08)); }'+
+  '.bz-ctx.on{ display:block; animation:bzpop .14s ease; }'+
+  '@keyframes bzpop{from{opacity:0;transform:scale(.92) translateY(-4px)}to{opacity:1;transform:none}}'+
+  '.bz-ctx button{ display:flex; align-items:center; gap:10px; width:100%; border:none; background:none; padding:10px 12px; border-radius:10px; font:inherit; font-weight:700; font-size:14px; color:inherit; cursor:pointer; text-align:left; }'+
+  '.bz-ctx button:hover,.bz-ctx button:active{ background:rgba(232,116,97,.12); }'+
+  '.bz-ctx button.danger{ color:#e8554e; }'+
+  '.bz-ctx .ic{ font-size:16px; width:18px; text-align:center; }'+
+  '.bz-bar{ display:none; align-items:center; gap:10px; background:var(--krem2,#fff); border-radius:14px 14px 0 0; padding:8px 12px; margin:0 0 -2px; box-shadow:0 -2px 12px rgba(40,20,30,.07); border-left:3px solid var(--mercan,#e87461); }'+
+  '.bz-bar.on{ display:flex; }'+
+  '.bz-bar.edit{ border-left-color:var(--lavanta,#b9a7e0); }'+
+  '.bz-bar .bz-bar-body{ flex:1; min-width:0; }'+
+  '.bz-bar .bz-bar-top{ font-size:11px; font-weight:800; color:var(--mercan,#e87461); }'+
+  '.bz-bar.edit .bz-bar-top{ color:var(--lavanta,#b9a7e0); }'+
+  '.bz-bar .bz-bar-txt{ font-size:12.5px; color:var(--soluk,#8a7d86); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }'+
+  '.bz-bar .bz-bar-x{ border:none; background:none; cursor:pointer; color:var(--soluk,#8a7d86); font-size:18px; line-height:1; padding:4px; }'+
+  '.chat-quote{ display:flex; flex-direction:column; gap:1px; background:rgba(0,0,0,.08); border-left:3px solid rgba(0,0,0,.35); border-radius:8px; padding:5px 9px; margin:0 0 6px; cursor:pointer; max-width:100%; }'+
+  '.bubble.right .chat-quote{ background:rgba(255,255,255,.22); border-left-color:rgba(255,255,255,.85); }'+
+  '.chat-quote b{ font-size:11px; font-weight:800; opacity:.85; }'+
+  '.chat-quote span{ font-size:12px; opacity:.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }'+
+  '.chat-edited{ display:block; font-size:10px; font-weight:700; opacity:.6; text-align:right; margin-top:2px; }'+
+  '.bubble.right .chat-edited{ color:#fff; }'+
+  '.bubble.del-pending{ opacity:.4; }'+
+  '.bubble.del-pending .chat-text{ text-decoration:line-through; }'+
+  '@keyframes bzflash{0%{box-shadow:0 0 0 3px rgba(232,116,97,.6)}100%{box-shadow:0 0 0 0 rgba(232,116,97,0)}}'+
+  '.bubble.bz-flash{ animation:bzflash 1.1s ease; }'+
+  '.bz-undo{ position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px); z-index:9700; display:none; align-items:center; gap:12px; background:#2c2630; color:#fff; padding:11px 14px 11px 16px; border-radius:14px; box-shadow:0 12px 30px rgba(0,0,0,.4); font-size:13px; font-weight:700; opacity:0; transition:.25s; }'+
+  '.bz-undo.on{ display:flex; opacity:1; transform:translateX(-50%) translateY(0); }'+
+  ':root[data-theme="dark"] .bz-undo{ background:#f3eaf0; color:#2c2630; }'+
+  '.bz-undo button{ border:none; background:none; color:var(--mercan,#ff8a78); font:inherit; font-weight:800; cursor:pointer; padding:4px 6px; }';
+  document.head.appendChild(st);
+}
+
+/* ---- menü ---- */
+const menu=document.createElement('div'); menu.className='bz-ctx'; document.body.appendChild(menu);
+let menuMsg=null;
+function closeMenu(){ menu.classList.remove('on'); menuMsg=null; }
+function openMenu(msg, x, y){
+  menuMsg=msg;
+  const mine = msg.authorIdx===BZ().ME;
+  menu.innerHTML =
+    '<button type="button" data-act="reply"><span class="ic">↩️</span>Yanıtla</button>'+
+    (mine?'<button type="button" data-act="edit"><span class="ic">✏️</span>Düzenle</button>':'')+
+    (mine?'<button type="button" class="danger" data-act="del"><span class="ic">🗑️</span>Sil</button>':'');
+  menu.classList.add('on');
+  const w=menu.offsetWidth, h=menu.offsetHeight;
+  let left=Math.max(8, Math.min(x, window.innerWidth-w-8));
+  let top=y-h-6; if(top<8) top=Math.min(y+18, window.innerHeight-h-8);
+  menu.style.left=left+'px'; menu.style.top=top+'px';
+  setTimeout(()=>document.addEventListener('pointerdown', outside, {once:true}),0);
+}
+function outside(e){ if(!menu.contains(e.target)) closeMenu(); }
+menu.addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b||!menuMsg) return;
+  const act=b.dataset.act, msg=menuMsg; closeMenu();
+  if(act==='reply') startReply(msg);
+  else if(act==='edit') startEdit(msg);
+  else if(act==='del') doDelete(msg);
+});
+
+/* ---- yanıt / düzenle şeridi ---- */
+const bar=document.createElement('div'); bar.className='bz-bar'; bar.id='bzBar';
+bar.innerHTML='<div class="bz-bar-body"><div class="bz-bar-top" id="bzBarTop"></div><div class="bz-bar-txt" id="bzBarTxt"></div></div><button type="button" class="bz-bar-x" id="bzBarX">✕</button>';
+function mountBar(){
+  if(bar.parentNode) return;
+  const row=document.querySelector('[data-screen="chat"] .row');
+  if(row) row.parentNode.insertBefore(bar, row);
+}
+function clip(s){ s=s||''; return s.length>70? s.slice(0,70)+'…' : s; }
+function startReply(msg){
+  mountBar();
+  window.__editId=null; window.__reply={ id:msg.id, author:msg.author, text:msg.text };
+  bar.classList.add('on'); bar.classList.remove('edit');
+  document.getElementById('bzBarTop').textContent='↩️ '+msg.author+' yanıtlanıyor';
+  document.getElementById('bzBarTxt').textContent=clip(msg.text);
+  const inp=document.getElementById('chatText'); if(inp) inp.focus();
+}
+function startEdit(msg){
+  mountBar();
+  window.__reply=null; window.__editId=msg.id;
+  bar.classList.add('on','edit');
+  document.getElementById('bzBarTop').textContent='✏️ Düzenliyorsun';
+  document.getElementById('bzBarTxt').textContent=clip(msg.text);
+  const inp=document.getElementById('chatText'); if(inp){ inp.value=msg.text; inp.focus(); }
+}
+function cancelBar(){ bar.classList.remove('on','edit'); window.__editId=null; window.__reply=null; }
+window.__clearChatBar=cancelBar;
+document.addEventListener('click', e=>{ if(e.target.id==='bzBarX') cancelBar(); });
+
+/* ---- sil + geri al ---- */
+const undo=document.createElement('div'); undo.className='bz-undo'; undo.id='bzUndo';
+undo.innerHTML='<span>Mesaj silindi</span><button type="button" id="bzUndoBtn">Geri al</button>';
+document.body.appendChild(undo);
+let undoId=null, undoTimer=null;
+function showUndo(){ undo.classList.add('on'); }
+function hideUndo(){ undo.classList.remove('on'); }
+function doDelete(msg){
+  if(undoId){ const prev=undoId; clearTimeout(undoTimer);
+    deleteDoc(doc(db,'couples',BZ().CODE,'chat',prev)).catch(()=>{});
+    window.__pendingDelete.delete(prev); }
+  undoId=msg.id; window.__pendingDelete.add(msg.id); BZ().renderChat();
+  showUndo();
+  undoTimer=setTimeout(finalize, 5000);
+}
+function finalize(){
+  if(!undoId) return; const id=undoId; undoId=null;
+  deleteDoc(doc(db,'couples',BZ().CODE,'chat',id)).catch(()=>{});
+  window.__pendingDelete.delete(id); hideUndo(); BZ().renderChat();
+}
+document.addEventListener('click', e=>{
+  if(e.target.id==='bzUndoBtn'){
+    if(!undoId) return; clearTimeout(undoTimer);
+    const id=undoId; undoId=null; window.__pendingDelete.delete(id); hideUndo(); BZ().renderChat();
+  }
+});
+
+/* ---- basılı tut / sağ tık ---- */
+const wrap=document.getElementById('chatWrap');
+function msgOf(bubbleEl){ const id=bubbleEl.getAttribute('data-id'); return (BZ().DB.chat||[]).find(m=>m.id===id)||null; }
+let pressT=null, pressEl=null, moved=false, sx=0, sy=0;
+if(wrap){
+  wrap.addEventListener('pointerdown', e=>{
+    const b=e.target.closest('.bubble'); if(!b) return;
+    pressEl=b; moved=false; sx=e.clientX; sy=e.clientY;
+    clearTimeout(pressT);
+    pressT=setTimeout(()=>{ if(!moved && pressEl){ const m=msgOf(pressEl); if(m) openMenu(m, e.clientX, e.clientY); } pressEl=null; }, 450);
+  });
+  wrap.addEventListener('pointermove', e=>{ if(pressEl && Math.hypot(e.clientX-sx, e.clientY-sy)>8){ moved=true; clearTimeout(pressT); } }, {passive:true});
+  wrap.addEventListener('pointerup', ()=>{ clearTimeout(pressT); pressEl=null; });
+  wrap.addEventListener('pointercancel', ()=>{ clearTimeout(pressT); pressEl=null; });
+  wrap.addEventListener('contextmenu', e=>{ const b=e.target.closest('.bubble'); if(!b) return; e.preventDefault(); const m=msgOf(b); if(m) openMenu(m, e.clientX, e.clientY); });
+  wrap.addEventListener('click', e=>{ const q=e.target.closest('.chat-quote'); if(q){ const id=q.getAttribute('data-goto'); if(id) goToMessage(id); } });
+}
+const sec=document.querySelector('[data-screen="chat"]');
+if(sec) sec.addEventListener('scroll', closeMenu, {passive:true});
+
+/* ---- alıntıya tıklayınca o mesaja zıpla ---- */
+function cssEsc(s){ return String(s).replace(/"/g,'\\"'); }
+function goToMessage(id){
+  const s=document.querySelector('[data-screen="chat"]'); if(!s) return;
+  if(typeof window.go==='function' && !s.classList.contains('active')) window.go('chat');
+  const el=s.querySelector('.bubble[data-id="'+cssEsc(id)+'"]'); if(!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.remove('bz-flash'); void el.offsetWidth; el.classList.add('bz-flash');
+}
 });
 })();
 </script>
