@@ -105,6 +105,9 @@
   .bubble.left{ background:var(--krem); align-self:flex-start; border-bottom-left-radius:5px; }
   .bubble.right{ background:linear-gradient(135deg,var(--mercan),var(--pembe)); color:#fff; align-self:flex-end; border-bottom-right-radius:5px; }
   .bubble.right .who{ color:#fff; }
+  .bubble .chat-tick{ font-size:10px; font-weight:800; text-align:right; margin-top:4px; opacity:.7; letter-spacing:.3px; }
+.bubble.right .chat-tick{ color:rgba(255,255,255,.8); }
+.bubble.right .chat-tick.read{ color:#fff; opacity:1; }
   .photos{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .photos .ph{ position:relative; aspect-ratio:1; border-radius:16px; overflow:hidden; box-shadow:var(--golge); cursor:pointer; }
   .photos .ph img{ width:100%; height:100%; object-fit:cover; display:block; }
@@ -591,7 +594,7 @@ window.logout = async ()=>{
 function startSync(){
   unsubs.forEach(u=>u()); unsubs=[];
   $('syncDot').classList.add('on');
-  unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); } }));
+  unsubs.push(onSnapshot(metaDoc(), s=>{ if(s.exists()){ DB.settings={...DB.settings, ...s.data()}; renderHome(); if(current==='profile') fillProfile(); if(current==='chat') renderChat(); } }));
   unsubs.push(onSnapshot(petDoc(), s=>{
     if(!s.exists()){ if(current==='pet') renderPet(); if(current==='home') renderPetMini(); return; }
     let data = s.data() || {};
@@ -2650,13 +2653,31 @@ window.addNote = async ()=>{ const t=$('noteText').value.trim(); if(!t) return; 
 window.delNote = id => deleteDoc(doc(db,'couples',CODE,'notes',id));
 
 function renderChat(){
-  const w=$('chatWrap');
-  if(!DB.chat.length){ w.innerHTML='<div class="empty">Birbirinize mesaj gönderin</div>'; return; }
-   const _nc=DB.chat.length, _pc=(window._chatPrevCount==null?_nc:window._chatPrevCount);
-  if(_pc>0 && _nc>_pc){ for(let i=_pc;i<_nc;i++){ if(DB.chat[i].authorIdx!==ME){ window.sfxReceive&&window.sfxReceive(); break; } } }
-  window._chatPrevCount=_nc;
-  w.innerHTML=DB.chat.map(m=>`<div class="bubble ${m.authorIdx===ME?'right':'left'}"><div class="who">${esc(m.author)}</div>${esc(m.text)}</div>`).join('');
-  w.scrollTop=w.scrollHeight;
+const w=$('chatWrap');
+if(!DB.chat.length){ w.innerHTML='<div class="empty">Birbirinize mesaj gönderin</div>'; return; }
+const _nc=DB.chat.length, _pc=(window._chatPrevCount==null?_nc:window._chatPrevCount);
+if(_pc>0 && _nc>_pc){ for(let i=_pc;i<_nc;i++){ if(DB.chat[i].authorIdx!==ME){ window.sfxReceive&&window.sfxReceive(); break; } } }
+window._chatPrevCount=_nc;
+const otherRead = DB.settings['read'+(1-ME)];
+const otherReadMs = otherRead && otherRead.toMillis ? otherRead.toMillis() : (Number(otherRead)||0);
+w.innerHTML=DB.chat.map(m=>{
+const mine = m.authorIdx===ME;
+const mt = m.ts && m.ts.toMillis ? m.ts.toMillis() : 0;
+const read = mine && otherReadMs>0 && mt<=otherReadMs;
+const tick = mine ? `<div class="chat-tick${read?' read':''}">${read?'Okundu':'✓'}</div>` : '';
+return `<div class="bubble ${mine?'right':'left'}"><div class="who">${esc(m.author)}</div>${esc(m.text)}${tick}</div>`;
+}).join('');
+w.scrollTop=w.scrollHeight;
+markChatRead();
+}
+function markChatRead(){
+if(current!=='chat' || !CODE || document.hidden) return;
+const last = DB.chat[DB.chat.length-1];
+if(!last || last.authorIdx===ME) return;
+const myRead = DB.settings['read'+ME];
+const myReadMs = myRead && myRead.toMillis ? myRead.toMillis() : (Number(myRead)||0);
+const lastMs = last.ts && last.ts.toMillis ? last.ts.toMillis() : 0;
+if(lastMs > myReadMs){ try{ updateDoc(metaDoc(), { ['read'+ME]: serverTimestamp() }); }catch(e){} }
 }
 let _chatLock=0;
 window.addChat = async ()=>{ const now=Date.now(); if(now-_chatLock<1200) return; _chatLock=now; const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
