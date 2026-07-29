@@ -2906,7 +2906,7 @@ setInterval(()=>{
   }
 })();
 </script>
-<!-- ===== AKTİVİTE IŞIKLARI (DOĞRUDAN deftere bakar, postacı yok) ===== -->
+<!-- ===== AKTİVİTE IŞIKLARI (ismin yanında, DOĞRUDAN buluta bakar) ===== -->
 <script type="module">
 import { getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
@@ -2915,17 +2915,14 @@ import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from 'firebase/fires
 function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
 ready(function(){
 var CODE=null, ME=0, UID=null;
-var wrap=document.querySelector('.couple'); if(!wrap) return;
-var persons=wrap.querySelectorAll('.person'); if(persons.length<2) return;
-var av1=persons[0].querySelector('.avatar'), av2=persons[1].querySelector('.avatar');
-if(!av1||!av2) return;
-[av1,av2].forEach(function(a){ if(!a.querySelector('.presence-dot')){ var d=document.createElement('span'); d.className='presence-dot'; a.appendChild(d); } });
-var d1=av1.querySelector('.presence-dot'), d2=av2.querySelector('.presence-dot');
-function show(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
-function fresh(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<90000; }
-function paint(o1,o2){ show(d1,fresh(o1)); show(d2,fresh(o2)); }
+var nm1=document.getElementById('nm1'), nm2=document.getElementById('nm2');
+if(!nm1||!nm2) return;
+function mkDot(nm){ var d=document.createElement('span'); d.className='presence-dot'; nm.parentNode.insertBefore(d, nm.nextSibling); return d; }
+var d1=mkDot(nm1), d2=mkDot(nm2);
+function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<90000; }
+function paint(o1,o2){ d1.classList.toggle('on', isOn(o1)); d2.classList.toggle('on', isOn(o2)); }
 function ref(){ return doc(getFirestore(getApp()),'couples',CODE,'meta','info'); }
-function beat(){ if(!CODE||UID==null) return; var f=(ME===0)?'online1':'online2'; updateDoc(ref(),{[f]:Date.now()}).catch(function(){}); }
+function beat(){ if(!CODE||UID==null) return; updateDoc(ref(),{[(ME===0)?'online1':'online2']:Date.now()}).catch(function(){}); }
 var unsub=null, timer=null;
 function start(){
 if(!CODE||UID==null||unsub) return;
@@ -2947,12 +2944,13 @@ window.addEventListener('beforeunload', function(){ if(CODE&&UID!=null){ updateD
 })();
 </script>
 <style>
-.person .avatar{ position:relative; }
+.person .nm{ display:inline-block; vertical-align:middle; }
 .presence-dot{
-position:absolute; right:2px; bottom:2px; width:15px; height:15px; border-radius:50%;
-background:#b9b3bd; border:2.5px solid var(--krem2, #fffaf2); box-sizing:border-box; z-index:2;
+display:inline-block; width:9px; height:9px; border-radius:50%;
+background:#c9c2cc; margin-left:6px; vertical-align:middle;
+box-shadow:0 0 0 2px var(--krem2,#fffaf2);
 }
-.presence-dot.on{ background:#3ddc84; box-shadow:0 0 0 2px rgba(61,220,132,.35); }
+.presence-dot.on{ background:#3ddc84; box-shadow:0 0 0 2px rgba(61,220,132,.4); }
 </style>
 <!-- ===== HESAP SİLME: tek ekran + şifreyle doğrula (No document + recent-login hatalarını çözer) ===== -->
 <style>
