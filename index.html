@@ -613,7 +613,7 @@ function startSync(){
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
-  unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='chat') renderChat(); }));
+  unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ const _docs = snap.docs.map(d=>({id:d.id, ...d.data()})); if(_docs.length===0 && DB.chat.length>0){ return; } DB.chat = _docs; if(current==='chat') renderChat(); }));
   unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
   unsubs.push(onSnapshot(query(col('events'), orderBy('date','asc')), snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='calendar') renderEvents(); }));
   unsubs.push(onSnapshot(doc(db,'couples',CODE,'meta','qa'), s=>{ DB.qa = s.exists()? (s.data().items||{}) : {}; if(current==='qa') renderQA(); }));
@@ -2689,22 +2689,34 @@ if(lastMs > myReadMs){ try{ updateDoc(metaDoc(), { ['read'+ME]: serverTimestamp(
 }
 let _chatLock=0;
 window.addChat = async ()=>{
-const now=Date.now(); if(now-_chatLock<900) return; _chatLock=now;
+const now=Date.now(); if(now-_chatLock<700) return; _chatLock=now;
 const inp=$('chatText'), t=inp.value.trim(); if(!t) return; inp.value='';
 const editId = window.__editId || null;
 const reply  = window.__reply || null;
 window.__editId = null; window.__reply = null;
 window.__clearChatBar && window.__clearChatBar();
 if(editId){
-  try{ await updateDoc(doc(db,'couples',CODE,'chat',editId), { text:t, edited:true }); }catch(e){}
+  const old=(DB.chat||[]).find(m=>m.id===editId); const prev=old?old.text:null;
+  if(old){ old.text=t; old.edited=true; renderChat(); }
+  try{ await updateDoc(doc(db,'couples',CODE,'chat',editId), { text:t, edited:true }); }
+  catch(e){ if(old&&prev!=null){ old.text=prev; old.edited=false; renderChat(); } toast('Düzenlenemedi — bağlantıyı kontrol et'); }
   window.sfxSend && window.sfxSend();
   return;
 }
-const msg = { author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() };
-if(reply){ msg.replyTo = { id:reply.id, author:reply.author, text:reply.text }; }
-await addDoc(col('chat'), msg);
-notifyOthers(myName(), t);
+const tmpId='tmp_'+Date.now()+'_'+Math.floor(Math.random()*1000);
+const tmp={ id:tmpId, author:myName(), authorIdx:ME, text:t, ts:{ toMillis:()=>Date.now() } };
+if(reply){ tmp.replyTo={ id:reply.id, author:reply.author, text:reply.text }; }
+DB.chat.push(tmp); renderChat();
 window.sfxSend && window.sfxSend();
+try{
+  const msg={ author:myName(), authorIdx:ME, text:t, ts:serverTimestamp() };
+  if(reply){ msg.replyTo={ id:reply.id, author:reply.author, text:reply.text }; }
+  await addDoc(col('chat'), msg);
+  notifyOthers(myName(), t);
+}catch(e){
+  DB.chat = DB.chat.filter(m=>m.id!==tmpId); renderChat();
+  inp.value=t; toast('Mesaj gönderilemedi — bağlantıyı kontrol et');
+}
 };
 
 function compress(file, maxW, targetBytes){
