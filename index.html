@@ -3414,5 +3414,43 @@ function goToMessage(id){
 });
 })();
 </script>
+<!-- ===== SOHBET GÜVENLİK AĞI: canlı dinleme kaçırırsa mesajları kendisi tamamlar ===== -->
+<script type="module">
+import { getApp } from 'firebase/app';
+import { getFirestore, getDocs, query, orderBy } from 'firebase/firestore';
+(function(){
+function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+ready(function(){
+var db = getFirestore(getApp());
+var BZ = window.__BZ; if(!BZ){ return; }
+try{ console.log('%cBIZIKI_SYNC_V2 aktif','color:#3ddc84;font-weight:bold'); }catch(e){}
+function chatActive(){ var s=document.querySelector('[data-screen="chat"]'); return !!(s && s.classList.contains('active')); }
+function tsOf(m){ try{ return (m && m.ts && m.ts.toMillis) ? m.ts.toMillis() : 0; }catch(e){ return 0; } }
+function tmpMatchesReal(tmp, real){
+for(var i=0;i<real.length;i++){ var m=real[i];
+if(m.authorIdx===tmp.authorIdx && m.text===tmp.text && Math.abs(tsOf(m)-tsOf(tmp))<15000) return true; }
+return false;
+}
+async function fill(){
+if(!chatActive()) return;                 /* sadece sohbet açıkken çalışsın, boşuna okuma olmasın */
+var bz; try{ bz=BZ(); }catch(e){ return; }
+if(!bz || !bz.CODE) return;
+var realDocs;
+try{ var snap = await getDocs(query(bz.col('chat'), orderBy('ts','asc')));
+realDocs = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); }); }
+catch(e){ return; }
+var cur = bz.DB.chat || [];
+var filtered = cur.filter(function(m){ return !(String(m.id).indexOf('tmp_')===0 && tmpMatchesReal(m, realDocs)); });
+var haveIds = {}; filtered.forEach(function(m){ haveIds[m.id]=1; });
+var missing = realDocs.filter(function(m){ return !haveIds[m.id]; });
+if(!missing.length && filtered.length===cur.length){ return; }   /* değişiklik yoksa dokunma */
+bz.DB.chat = filtered.concat(missing).sort(function(a,b){ return tsOf(a)-tsOf(b); });
+try{ bz.renderChat(); }catch(e){}
+}
+setInterval(fill, 2500);                  /* 2.5 sn'de bir eksikleri topla */
+document.addEventListener('click', function(){ if(chatActive()) setTimeout(fill, 300); }, true);
+});
+})();
+</script>
 </body>
 </html>
