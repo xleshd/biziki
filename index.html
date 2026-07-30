@@ -613,7 +613,7 @@ function startSync(){
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
-  unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ const _docs = snap.docs.map(d=>({id:d.id, ...d.data()})); if(_docs.length===0 && DB.chat.length>0){ return; } DB.chat = _docs; if(current==='chat') renderChat(); }));
+  unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ const _docs = snap.docs.map(d=>({id:d.id, ...d.data()})); if(_docs.length===0 && DB.chat.length>0){ return; } DB.chat = _docs; if(current==='chat') renderChat(); }, err=>{ console.warn('chat sync hata:', err); }));
   unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
   unsubs.push(onSnapshot(query(col('events'), orderBy('date','asc')), snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='calendar') renderEvents(); }));
   unsubs.push(onSnapshot(doc(db,'couples',CODE,'meta','qa'), s=>{ DB.qa = s.exists()? (s.data().items||{}) : {}; if(current==='qa') renderQA(); }));
