@@ -1581,12 +1581,12 @@ function sSyncStart() {
     if (sInWorld && CODE) {
       updateDoc(sanDoc(), { ['p' + ME + '.seen']: Date.now() }).catch(() => {});
     }
-  }, 4000);
+  }, 20000);
 
   if (sStaleTimer) clearInterval(sStaleTimer);
   sStaleTimer = setInterval(() => {
     const pc = sCharacters['s-partner'];
-    if (pc && pc._seen && Date.now() - pc._seen > 15000) {
+    if (pc && pc._seen && Date.now() - pc._seen > 50000) {
       pc.el.remove();
       delete sCharacters['s-partner'];
       sCloseBubble();
@@ -1672,7 +1672,7 @@ function sApplySnapshot(data) {
   if (!data || !sInWorld) return;
 
   const other = data['p' + (1 - ME)];
-  const fresh = !!(other && other.on && other.seen && (Date.now() - other.seen < 15000));
+  const fresh = !!(other && other.on && other.seen && (Date.now() - other.seen < 50000));
 
   if (fresh) {
     const lookHash = JSON.stringify([other.name, other.gender, other.hair, other.colors]);
@@ -3123,46 +3123,6 @@ import { getFirestore, doc, getDoc, updateDoc, deleteDoc, collection, getDocs, w
   };
 })();
 </script>
-<!-- ===== IŞIK DÜZELTMESİ: doğrudan deftere bakar (eski parçaya dokunmaz) ===== -->
-<script type="module">
-import { getApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
-(function(){
-function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
-ready(function(){
-var CODE=null, ME=0, UID=null;
-var wrap=document.querySelector('.couple'); if(!wrap) return;
-var persons=wrap.querySelectorAll('.person'); if(persons.length<2) return;
-var av1=persons[0].querySelector('.avatar'), av2=persons[1].querySelector('.avatar');
-if(!av1||!av2) return;
-[av1,av2].forEach(function(a){ if(!a.querySelector('.presence-dot')){ var d=document.createElement('span'); d.className='presence-dot'; a.appendChild(d); } });
-var d1=av1.querySelector('.presence-dot'), d2=av2.querySelector('.presence-dot');
-function show(d,on){ if(!d) return; d.style.display='block'; d.classList.toggle('on',!!on); }
-function fresh(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<60000; }
-function paint(o1,o2){ show(d1,fresh(o1)); show(d2,fresh(o2)); }
-function ref(){ return doc(getFirestore(getApp()),'couples',CODE,'meta','info'); }
-function beat(){ if(!CODE||UID==null) return; var f=(ME===0)?'online1':'online2'; updateDoc(ref(),{[f]:Date.now()}).catch(function(){}); }
-var unsub=null, timer=null;
-function start(){
-if(!CODE||UID==null||unsub) return;
-unsub=onSnapshot(ref(), function(s){ if(s.exists()){ var d=s.data()||{}; paint(d.online1,d.online2); } }, function(){});
-beat(); if(timer) clearInterval(timer); timer=setInterval(beat,20000);
-}
-function stop(){ if(unsub){unsub();unsub=null;} if(timer){clearInterval(timer);timer=null;} }
-try{
-var app=getApp(), auth=getAuth(app), db=getFirestore(app);
-onAuthStateChanged(auth, function(u){
-if(!u){ UID=null; stop(); return; }
-UID=u.uid;
-getDoc(doc(db,'users',UID)).then(function(s){ if(s.exists()){ CODE=s.data().coupleCode||null; ME=Number(s.data().slot)||0; start(); } }).catch(function(){});
-});
-}catch(e){}
-document.addEventListener('visibilitychange', function(){ if(!document.hidden) beat(); });
-window.addEventListener('beforeunload', function(){ if(CODE&&UID!=null){ updateDoc(ref(),{[(ME===0)?'online1':'online2']:0}).catch(function(){}); } });
-});
-})();
-</script>
 <!-- ===== YAZIYOR... BİLGİSİ (WhatsApp tarzı, doğrudan deftere yazar/okur) ===== -->
 <script type="module">
 import { getApp } from 'firebase/app';
@@ -3411,44 +3371,6 @@ function goToMessage(id){
   el.scrollIntoView({behavior:'smooth', block:'center'});
   el.classList.remove('bz-flash'); void el.offsetWidth; el.classList.add('bz-flash');
 }
-});
-})();
-</script>
-<!-- ===== SOHBET GÜVENLİK AĞI: canlı dinleme kaçırırsa mesajları kendisi tamamlar ===== -->
-<script type="module">
-import { getApp } from 'firebase/app';
-import { getFirestore, getDocs, query, orderBy } from 'firebase/firestore';
-(function(){
-function ready(fn){ if(document.readyState!=='loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
-ready(function(){
-var db = getFirestore(getApp());
-var BZ = window.__BZ; if(!BZ){ return; }
-try{ console.log('%cBIZIKI_SYNC_V2 aktif','color:#3ddc84;font-weight:bold'); }catch(e){}
-function chatActive(){ var s=document.querySelector('[data-screen="chat"]'); return !!(s && s.classList.contains('active')); }
-function tsOf(m){ try{ return (m && m.ts && m.ts.toMillis) ? m.ts.toMillis() : 0; }catch(e){ return 0; } }
-function tmpMatchesReal(tmp, real){
-for(var i=0;i<real.length;i++){ var m=real[i];
-if(m.authorIdx===tmp.authorIdx && m.text===tmp.text && Math.abs(tsOf(m)-tsOf(tmp))<15000) return true; }
-return false;
-}
-async function fill(){
-if(!chatActive()) return;                 /* sadece sohbet açıkken çalışsın, boşuna okuma olmasın */
-var bz; try{ bz=BZ(); }catch(e){ return; }
-if(!bz || !bz.CODE) return;
-var realDocs;
-try{ var snap = await getDocs(query(bz.col('chat'), orderBy('ts','asc')));
-realDocs = snap.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); }); }
-catch(e){ return; }
-var cur = bz.DB.chat || [];
-var filtered = cur.filter(function(m){ return !(String(m.id).indexOf('tmp_')===0 && tmpMatchesReal(m, realDocs)); });
-var haveIds = {}; filtered.forEach(function(m){ haveIds[m.id]=1; });
-var missing = realDocs.filter(function(m){ return !haveIds[m.id]; });
-if(!missing.length && filtered.length===cur.length){ return; }   /* değişiklik yoksa dokunma */
-bz.DB.chat = filtered.concat(missing).sort(function(a,b){ return tsOf(a)-tsOf(b); });
-try{ bz.renderChat(); }catch(e){}
-}
-setInterval(fill, 2500);                  /* 2.5 sn'de bir eksikleri topla */
-document.addEventListener('click', function(){ if(chatActive()) setTimeout(fill, 300); }, true);
 });
 })();
 </script>
