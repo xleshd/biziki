@@ -613,7 +613,33 @@ function startSync(){
     if(current==='pet') renderPet(); if(current==='home') renderPetMini();
   }));
   unsubs.push(onSnapshot(query(col('notes'), orderBy('ts','asc')), snap=>{ DB.notes = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='notes') renderNotes(); }));
-  unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{ const _docs = snap.docs.map(d=>({id:d.id, ...d.data()})); if(_docs.length===0 && DB.chat.length>0){ return; } DB.chat = _docs; if(current==='chat') renderChat(); }, err=>{ console.warn('chat sync hata:', err); }));
+unsubs.push(onSnapshot(query(col('chat'), orderBy('ts','asc')), snap=>{
+    if(snap.docs.length===0 && DB.chat.length>0){ return; }
+    if(DB.chat.length===0){
+        DB.chat = snap.docs.map(d=>({id:d.id, ...d.data()}));
+        if(current==='chat') renderChat();
+        return;
+    }
+    let changed = false;
+    snap.docChanges().forEach(ch=>{
+        const data = { id: ch.doc.id, ...ch.doc.data() };
+        if(ch.type==='added'){
+            const ti = DB.chat.findIndex(m=> m.id.startsWith('tmp_') && m.text===data.text && m.authorIdx===data.authorIdx);
+            if(ti!==-1){ DB.chat[ti] = data; }
+            else if(!DB.chat.some(m=>m.id===data.id)){ DB.chat.push(data); }
+            changed = true;
+        }
+        if(ch.type==='modified'){
+            const i = DB.chat.findIndex(m=>m.id===data.id);
+            if(i!==-1){ DB.chat[i] = data; changed = true; }
+        }
+        if(ch.type==='removed'){
+            const i = DB.chat.findIndex(m=>m.id===data.id);
+            if(i!==-1){ DB.chat.splice(i,1); changed = true; }
+        }
+    });
+    if(changed && current==='chat') renderChat();
+}, err=>{ console.warn('chat sync hata:', err); }));
   unsubs.push(onSnapshot(query(col('photos'), orderBy('ts','asc')), snap=>{ DB.photos = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='album') renderPhotos(); }));
   unsubs.push(onSnapshot(query(col('events'), orderBy('date','asc')), snap=>{ DB.events = snap.docs.map(d=>({id:d.id, ...d.data()})); if(current==='calendar') renderEvents(); }));
   unsubs.push(onSnapshot(doc(db,'couples',CODE,'meta','qa'), s=>{ DB.qa = s.exists()? (s.data().items||{}) : {}; if(current==='qa') renderQA(); }));
