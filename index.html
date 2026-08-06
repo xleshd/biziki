@@ -2899,16 +2899,15 @@ window.deleteAccount = async function(){
     else { toast('Hesap silinemedi'); }
   }
 };
-
-setInterval(()=>{
-  // ===== SOHBET AÇIKKEN BİLDİRİM SUS (postacıya "rahatsız etme" işareti) =====
+// ===== SOHBET AÇIKKEN BİLDİRİM SUS (DÜZELTİLMİŞ: dinleyiciler sadece BİR KEZ eklenir) =====
 function writeChatOpen(on){ try{ if(UID){ updateDoc(userDoc(UID), { chatOpen: !!on }).catch(function(){}); } }catch(e){} }
 document.addEventListener('visibilitychange', function(){ writeChatOpen(!document.hidden && current==='chat'); });
 window.addEventListener('beforeunload', function(){ writeChatOpen(false); });
 window.addEventListener('pagehide', function(){ writeChatOpen(false); });
-  if(current==='pet' && DB.pet && !tempFace){ tickPet(); }
-  else if(current==='home' && DB.pet){ tickMini(); }
-  if(DB.pet){ const c=decay(DB.pet); petNotify(c); writeBars(c); }
+setInterval(()=>{
+if(current==='pet' && DB.pet && !tempFace){ tickPet(); }
+else if(current==='home' && DB.pet){ tickMini(); }
+if(DB.pet){ const c=decay(DB.pet); petNotify(c); writeBars(c); }
 }, 4000);
 </script>
 <script>
@@ -3005,7 +3004,7 @@ var nm1=document.getElementById('nm1'), nm2=document.getElementById('nm2');
 if(!nm1||!nm2) return;
 function mkDot(nm){ var d=document.createElement('span'); d.className='presence-dot'; nm.parentNode.insertBefore(d, nm.nextSibling); return d; }
 var d1=mkDot(nm1), d2=mkDot(nm2);
-function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<90000; }
+function isOn(v){ var n=Number(v)||0; return n>0 && (Date.now()-n)<135000; }
 function paint(o1,o2){ d1.classList.toggle('on', isOn(o1)); d2.classList.toggle('on', isOn(o2)); }
 function ref(){ return doc(getFirestore(getApp()),'couples',CODE,'meta','info'); }
 function beat(){ if(!CODE||UID==null) return; updateDoc(ref(),{[(ME===0)?'online1':'online2']:Date.now()}).catch(function(){}); }
@@ -3013,7 +3012,7 @@ var unsub=null, timer=null;
 function start(){
 if(!CODE||UID==null||unsub) return;
 unsub=onSnapshot(ref(), function(s){ if(s.exists()){ var d=s.data()||{}; paint(d.online1,d.online2); } }, function(){});
-beat(); if(timer) clearInterval(timer); timer=setInterval(beat,20000);
+beat(); if(timer) clearInterval(timer); timer=setInterval(beat,45000);
 }
 function stop(){ if(unsub){unsub();unsub=null;} if(timer){clearInterval(timer);timer=null;} }
 try{
